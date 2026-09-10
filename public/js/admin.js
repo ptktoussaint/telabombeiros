@@ -6,6 +6,7 @@
   var iceReady = null;
   var liveRooms = new Map();
   var monitors = new Map();
+  var roomsById = new Map();
   var branding = null;
 
   var STATUS_LABEL = {
@@ -58,8 +59,13 @@
     var includeClosed = document.getElementById('showClosed').checked ? '?includeClosed=1' : '';
     return UI.api('/api/admin/rooms' + includeClosed)
       .then(function (data) {
+        roomsById.clear();
+        data.rooms.forEach(function (room) { roomsById.set(room.roomId, room); });
         renderRooms(data.rooms);
         renderWatchControls(data.rooms);
+        monitors.forEach(function (monitor, roomId) {
+          if (roomsById.has(roomId)) monitor.updateRoomInfo(roomsById.get(roomId));
+        });
       })
       .catch(function (err) { UI.toast(err.message); });
   }
@@ -191,15 +197,26 @@
       '<header><h3></h3><span class="badge" data-tile-status><span class="dot"></span>conectando</span></header>' +
       '<video autoplay playsinline muted></video>' +
       '<div class="row" style="margin-top:10px">' +
+      '<button class="btn small" data-tile-sound>Ativar som</button>' +
       '<button class="btn ghost small" data-tile-stop>Parar</button>' +
-      '<span class="muted small" data-tile-viewers></span>' +
+      '</div>' +
+      '<div class="tile-panel">' +
+      '<h4>Espectadores agora <span data-tile-count>(0)</span></h4>' +
+      '<ul class="tile-list" data-tile-viewers></ul>' +
+      '</div>' +
+      '<div class="tile-panel">' +
+      '<h4>Links de convite</h4>' +
+      '<ul class="tile-list" data-tile-invites></ul>' +
       '</div>';
     tile.querySelector('h3').textContent = roomLabel;
     grid.appendChild(tile);
 
     var video = tile.querySelector('video');
     var badge = tile.querySelector('[data-tile-status]');
-    var viewersLabel = tile.querySelector('[data-tile-viewers]');
+    var soundBtn = tile.querySelector('[data-tile-sound]');
+    var viewersBox = tile.querySelector('[data-tile-viewers]');
+    var countBox = tile.querySelector('[data-tile-count]');
+    var invitesBox = tile.querySelector('[data-tile-invites]');
 
     function setStatus(status) {
       badge.className = 'badge';
@@ -207,6 +224,70 @@
       else if (status === 'interrupted' || status === 'error') badge.classList.add('error');
       else badge.classList.add('warn');
       badge.innerHTML = '<span class="dot"></span>' + (STATUS_LABEL[status] || status);
+    }
+
+    // Cada sala tem seu proprio som: comeca mudo porque o navegador nao deixa
+    // varios videos tocarem sozinhos com audio, e o admin escolhe qual quer ouvir.
+    soundBtn.addEventListener('click', function () {
+      video.muted = !video.muted;
+      soundBtn.textContent = video.muted ? 'Ativar som' : 'Desativar som';
+      soundBtn.classList.toggle('ghost', !video.muted);
+      if (!video.muted) {
+        video.volume = 1;
+        var play = video.play();
+        if (play && play.catch) play.catch(function () {});
+      }
+    });
+
+    function renderViewers(viewers) {
+      var lista = viewers || [];
+      countBox.textContent = '(' + lista.length + ')';
+      viewersBox.innerHTML = '';
+      if (!lista.length) {
+        viewersBox.innerHTML = '<li class="muted">Ninguem assistindo agora.</li>';
+        return;
+      }
+      lista.forEach(function (viewer) {
+        var li = document.createElement('li');
+        var nome = document.createElement('span');
+        nome.textContent = viewer.label || 'Espectador';
+        var desde = document.createElement('span');
+        desde.className = 'muted';
+        desde.textContent = 'desde ' + UI.formatTime(viewer.joinedAt);
+        li.appendChild(nome);
+        li.appendChild(desde);
+        viewersBox.appendChild(li);
+      });
+    }
+
+    function renderInvites(invites) {
+      var lista = invites || [];
+      invitesBox.innerHTML = '';
+      if (!lista.length) {
+        invitesBox.innerHTML = '<li class="muted">Nenhum convite gerado.</li>';
+        return;
+      }
+      lista.forEach(function (invite) {
+        var li = document.createElement('li');
+        var nome = document.createElement('span');
+        nome.textContent = invite.label;
+        if (!invite.active) nome.className = 'muted struck';
+        li.appendChild(nome);
+        if (invite.active) {
+          var btn = document.createElement('button');
+          btn.className = 'btn ghost small';
+          btn.textContent = 'Revogar';
+          btn.dataset.revoke = invite.id;
+          btn.dataset.room = roomId;
+          li.appendChild(btn);
+        } else {
+          var tag = document.createElement('span');
+          tag.className = 'muted';
+          tag.textContent = 'revogado';
+          li.appendChild(tag);
+        }
+        invitesBox.appendChild(li);
+      });
     }
 
     var receiver = new RTC.Receiver({
@@ -228,12 +309,19 @@
       tile: tile,
       setStatus: setStatus,
       updateRoomStatus: function (payload) {
-        viewersLabel.textContent = payload.viewerCount + ' espectador(es)';
+        renderViewers(payload.viewers);
         if (!payload.transmitterOnline) setStatus('awaiting');
+      },
+      updateRoomInfo: function (room) {
+        tile.querySelector('h3').textContent = room.roomLabel;
+        renderInvites(room.invites);
       },
     };
     monitors.set(roomId, monitor);
     if (live) monitor.updateRoomStatus(live);
+    if (roomsById.has(roomId)) monitor.updateRoomInfo(roomsById.get(roomId));
+    else renderInvites([]);
+    renderViewers(live ? live.viewers : []);
     setStatus('connecting');
 
     tile.querySelector('[data-tile-stop]').addEventListener('click', function () {

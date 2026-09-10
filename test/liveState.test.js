@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert');
 const { LiveState } = require('../lib/liveState');
 
-test('o admin monitorando nao entra na contagem de espectadores', () => {
+test('o admin monitorando nao aparece em campo nenhum do estado publicado', () => {
   const state = new LiveState();
   state.addViewer('sala1', { viewerId: 'v1', label: 'Convite' });
   state.addViewer('sala1', { viewerId: 'v2', label: 'Convite' });
@@ -13,8 +13,17 @@ test('o admin monitorando nao entra na contagem de espectadores', () => {
   assert.strictEqual(state.viewerCount('sala1'), 2);
   const snapshot = state.serializeRoom('sala1');
   assert.strictEqual(snapshot.viewerCount, 2);
-  assert.strictEqual(snapshot.monitorCount, 1);
   assert.deepStrictEqual(snapshot.viewers.map((v) => v.viewerId), ['v1', 'v2']);
+
+  // Nada no objeto serializado pode denunciar que existe alguem monitorando:
+  // nem contagem, nem o id do socket, nem o rotulo da central.
+  const serializado = JSON.stringify(snapshot);
+  assert.ok(!serializado.includes('admin-socket'), 'vazou o id do monitor');
+  assert.ok(!serializado.includes('Central'), 'vazou o rotulo do monitor');
+  assert.ok(!/monitor/i.test(serializado), 'vazou alguma contagem de monitores');
+
+  // O monitor continua existindo internamente - a conexao WebRTC depende disso.
+  assert.ok(state.getViewer('sala1', 'admin-socket'));
 });
 
 test('um mesmo id de socket pode estar em varias salas ao mesmo tempo', () => {

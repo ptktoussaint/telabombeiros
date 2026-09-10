@@ -349,6 +349,43 @@ video {
 .preview-status.ok { color: #58d68d; }
 .preview-status.fail { color: #ff6b6b; }
 
+.tile-panel {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.tile-panel h4 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.tile-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+  max-height: 132px;
+  overflow-y: auto;
+}
+
+.tile-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--text) 6%, transparent);
+}
+
+.tile-list li:last-child { border-bottom: 0; }
+
+.struck { text-decoration: line-through; }
+
 .empty {
   text-align: center;
   padding: 34px 16px;

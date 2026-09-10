@@ -45,20 +45,24 @@
     socket.emit('stream:status', { status: status });
   }
 
-  function renderViewers() {
-    var real = [...viewers.values()].filter(function (v) {
-      return !v.isAdminMonitor;
+  function visibleViewers() {
+    return [...viewers.values()].filter(function (v) {
+      return !v.hidden;
     });
-    els.viewerCount.textContent = '(' + real.length + ')';
+  }
+
+  function renderViewers() {
+    var visiveis = visibleViewers();
+    els.viewerCount.textContent = '(' + visiveis.length + ')';
     els.viewerList.innerHTML = '';
-    if (!viewers.size) {
+    if (!visiveis.length) {
       els.viewerList.innerHTML = '<li class="muted small">Ninguem conectado ainda.</li>';
       return;
     }
-    viewers.forEach(function (viewer) {
+    visiveis.forEach(function (viewer) {
       var li = document.createElement('li');
       var name = document.createElement('span');
-      name.textContent = viewer.label + (viewer.isAdminMonitor ? ' (monitoramento)' : '');
+      name.textContent = viewer.label;
       var badge = document.createElement('span');
       badge.className = 'badge' + (viewer.state === 'connected' ? ' live' : viewer.state === 'failed' ? ' error' : '');
       badge.innerHTML = '<span class="dot"></span>' + (viewer.state || 'conectando');
@@ -120,7 +124,7 @@
       return;
     }
     navigator.mediaDevices
-      .getDisplayMedia({ video: { frameRate: 24 }, audio: false })
+      .getDisplayMedia({ video: { frameRate: 24 }, audio: true })
       .then(function (stream) {
         localStream = stream;
         els.preview.srcObject = stream;
@@ -129,6 +133,10 @@
         setStatus('capturing');
 
         stream.getVideoTracks()[0].addEventListener('ended', stopSharing);
+
+        if (!stream.getAudioTracks().length) {
+          UI.toast('Transmitindo sem som. Para enviar o audio, marque "compartilhar audio" na janela do navegador.');
+        }
 
         // Reaproveita as conexoes existentes trocando a faixa; quem ainda nao tem, recebe uma nova.
         viewers.forEach(function (viewer, viewerId) {
@@ -227,7 +235,7 @@
     viewers.set(payload.viewerId, {
       viewerId: payload.viewerId,
       label: payload.label,
-      isAdminMonitor: payload.isAdminMonitor,
+      hidden: Boolean(payload.hidden),
       state: 'conectando',
     });
     renderViewers();
@@ -261,6 +269,7 @@
       viewer.state = 'failed';
       renderViewers();
     }
+    if (viewer && viewer.hidden) return;
     UI.toast('Uma conexao nao se recuperou sozinha. Peca para o espectador recarregar a pagina.');
   });
 

@@ -19,7 +19,9 @@
    `getStats()` com progresso real de `framesDecoded` / `bytesReceived`.
 6. Toda mensagem de sinalizacao que envolve o admin carrega `roomId` explicito (um socket dele
    atende varias salas).
-7. O admin monitorando entra como `isAdminMonitor: true` e fica fora das contagens de espectadores.
+7. O admin monitorando entra como `isAdminMonitor: true` e e **invisivel**: nao aparece em nenhuma
+   contagem, lista, rotulo ou campo serializado que chegue ao transmissor ou aos espectadores. Para
+   o transmissor vai apenas `hidden: true` com rotulo neutro, o minimo para abrir a conexao WebRTC.
 8. Tokens: so o hash sha256 vai para o banco. Nunca persistir o valor puro.
 9. Credenciais TURN nunca no HTML - so por `/api/ice-servers`, com sessao identificada.
 10. Este projeto **nao tem** nada de prova, exame, questoes, fiscal, aluno ou cronometro de prova.

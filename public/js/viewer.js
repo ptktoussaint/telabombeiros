@@ -104,6 +104,20 @@
     setStatus('reconnecting');
   });
 
+  // Comeca mudo porque navegador nenhum deixa um video com som tocar sozinho;
+  // o som so entra depois que a pessoa clica.
+  var soundBtn = document.getElementById('soundBtn');
+  soundBtn.addEventListener('click', function () {
+    els.video.muted = !els.video.muted;
+    soundBtn.textContent = els.video.muted ? 'Ativar som' : 'Desativar som';
+    soundBtn.classList.toggle('ghost', !els.video.muted);
+    if (!els.video.muted) {
+      els.video.volume = 1;
+      var play = els.video.play();
+      if (play && play.catch) play.catch(function () {});
+    }
+  });
+
   document.getElementById('fullscreenBtn').addEventListener('click', function () {
     if (els.video.requestFullscreen) els.video.requestFullscreen();
     else if (els.video.webkitEnterFullscreen) els.video.webkitEnterFullscreen();
