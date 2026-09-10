@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Assistir transmissao</title>
+  <link rel="stylesheet" href="/shared/base.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand-mark" data-brand-logo>🔥</div>
+      <div>
+        <h1 id="roomTitle">Transmissao</h1>
+        <p class="tagline" id="viewerLabel">Espectador</p>
+      </div>
+      <div class="spacer"></div>
+      <span class="badge" id="statusBadge"><span class="dot"></span><span id="statusText">Conectando</span></span>
+    </header>
+
+    <main>
+      <section class="card">
+        <video id="remote" autoplay playsinline controls></video>
+        <div class="row" style="margin-top:14px">
+          <button class="btn ghost" id="fullscreenBtn">Tela cheia</button>
+          <button class="btn ghost" id="reconnectBtn">Reconectar</button>
+          <span class="muted small" id="hint">Se a imagem congelar, o sistema tenta se recuperar sozinho.</span>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/shared/spotlight.js"></script>
+  <script src="/shared/sparks.js"></script>
+  <script src="/shared/ui.js"></script>
+  <script src="/shared/theme.js"></script>
+  <script src="/js/rtc.js"></script>
+  <script src="/js/viewer.js"></script>
+</body>
+</html>

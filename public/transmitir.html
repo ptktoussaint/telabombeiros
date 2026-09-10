@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Transmitir tela</title>
+  <link rel="stylesheet" href="/shared/base.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand-mark" data-brand-logo>🔥</div>
+      <div>
+        <h1 id="roomTitle">Sala</h1>
+        <p class="tagline">Voce e o transmissor desta sala</p>
+      </div>
+      <div class="spacer"></div>
+      <span class="badge" id="statusBadge"><span class="dot"></span><span id="statusText">Aguardando</span></span>
+    </header>
+
+    <main class="grid" style="grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); align-items:start">
+      <div>
+        <section class="card">
+          <h2>Sua tela</h2>
+          <p class="hint">
+            Clique em compartilhar e escolha a tela, a janela ou a aba que quer transmitir. Quem entrar
+            pelo link de convite ve exatamente isso, ao vivo.
+          </p>
+          <video id="preview" autoplay muted playsinline></video>
+          <div class="row" style="margin-top:14px">
+            <button class="btn" id="shareBtn">Compartilhar tela</button>
+            <button class="btn ghost" id="stopBtn" disabled>Parar de compartilhar</button>
+            <button class="btn ghost" id="closeRoomBtn">Encerrar sala</button>
+          </div>
+        </section>
+      </div>
+
+      <div>
+        <section class="card">
+          <h2>Quem esta assistindo <span class="muted small" id="viewerCount">(0)</span></h2>
+          <p class="hint">Cada espectador tem uma conexao propria: se a de um cair, os outros continuam.</p>
+          <ul class="list" id="viewerList">
+            <li class="muted small">Ninguem conectado ainda.</li>
+          </ul>
+        </section>
+
+        <section class="card">
+          <h2>Links de convite</h2>
+          <p class="hint">
+            Gere quantos quiser. O link so aparece na hora que e criado - depois disso o sistema guarda
+            apenas o cadeado dele.
+          </p>
+          <div class="row">
+            <input id="inviteLabel" type="text" placeholder="Nome do convite (opcional)" style="flex:1 1 160px" />
+            <button class="btn small" id="newInviteBtn">Gerar link</button>
+          </div>
+          <div id="newInviteBox" hidden style="margin-top:12px">
+            <label>Novo link (copie agora)</label>
+            <div class="link-box">
+              <input id="newInviteUrl" type="text" readonly />
+              <button class="btn small" id="copyInviteBtn">Copiar</button>
+            </div>
+          </div>
+          <ul class="list" id="inviteList" style="margin-top:14px"></ul>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/shared/spotlight.js"></script>
+  <script src="/shared/sparks.js"></script>
+  <script src="/shared/ui.js"></script>
+  <script src="/shared/theme.js"></script>
+  <script src="/js/rtc.js"></script>
+  <script src="/js/transmitter.js"></script>
+</body>
+</html>

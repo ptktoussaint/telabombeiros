@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Painel do administrador</title>
+  <link rel="stylesheet" href="/shared/base.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand-mark" data-brand-logo>🔥</div>
+      <div>
+        <h1 data-brand-name>Tela Bombeiros</h1>
+        <p class="tagline">Painel do administrador</p>
+      </div>
+      <div class="spacer"></div>
+      <span class="badge" id="connBadge"><span class="dot"></span><span id="connText">Conectando</span></span>
+      <button class="btn ghost small" id="logoutBtn">Sair</button>
+    </header>
+
+    <nav class="row" style="margin-bottom:18px">
+      <button class="btn ghost small tab-btn" data-tab="dashboard">Salas ativas</button>
+      <button class="btn ghost small tab-btn" data-tab="monitor">Central de monitoramento</button>
+      <button class="btn ghost small tab-btn" data-tab="branding">Identidade visual</button>
+    </nav>
+
+    <section class="tab" data-tab="dashboard">
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <div>
+            <h2>Salas</h2>
+            <p class="hint" id="roomsSummary">Carregando...</p>
+          </div>
+          <div class="row tight">
+            <label class="small" style="margin:0"><input type="checkbox" id="showClosed" style="width:auto"> mostrar encerradas</label>
+            <button class="btn ghost small" id="refreshRooms">Atualizar</button>
+          </div>
+        </div>
+        <div id="roomsList" class="grid" style="margin-top:14px"></div>
+      </div>
+    </section>
+
+    <section class="tab" data-tab="monitor" hidden>
+      <div class="card">
+        <h2>Central de monitoramento</h2>
+        <p class="hint">
+          Assista quantas salas quiser ao mesmo tempo, nesta mesma aba. Voce nao aparece na contagem de
+          espectadores das salas que estiver observando.
+        </p>
+        <div class="row" id="watchControls"></div>
+      </div>
+      <div class="monitor-grid" id="monitorGrid" style="margin-top:16px"></div>
+    </section>
+
+    <section class="tab" data-tab="branding" hidden>
+      <div class="card">
+        <h2>Identidade visual</h2>
+        <p class="hint">
+          As cores valem para o site inteiro. Para logo, fundo e video voce pode enviar um arquivo OU
+          colar um link externo. Prefira o link externo: o disco da hospedagem gratuita e apagado a cada
+          atualizacao do sistema, e arquivos enviados somem.
+        </p>
+
+        <div class="grid cols-2">
+          <div>
+            <label for="siteName">Nome do site</label>
+            <input id="siteName" type="text" maxlength="60" />
+          </div>
+          <div>
+            <label for="tagline">Frase de apoio</label>
+            <input id="tagline" type="text" maxlength="120" />
+          </div>
+        </div>
+
+        <h3 style="margin:22px 0 10px; font-size:15px">Cores</h3>
+        <div class="grid cols-3" id="colorGrid"></div>
+
+        <h3 style="margin:22px 0 10px; font-size:15px">Midias</h3>
+        <div id="mediaGrid" class="grid cols-2"></div>
+
+        <h3 style="margin:22px 0 10px; font-size:15px">Efeitos</h3>
+        <div class="row">
+          <label class="small" style="margin:0"><input type="checkbox" id="fxSpotlight" style="width:auto"> luz seguindo o cursor</label>
+          <label class="small" style="margin:0"><input type="checkbox" id="fxSparks" style="width:auto"> fagulhas de fogo</label>
+        </div>
+
+        <div class="row" style="margin-top:22px">
+          <button class="btn" id="saveBranding">Salvar identidade visual</button>
+          <button class="btn ghost" id="reloadBranding">Descartar alteracoes</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/shared/spotlight.js"></script>
+  <script src="/shared/sparks.js"></script>
+  <script src="/shared/ui.js"></script>
+  <script src="/shared/theme.js"></script>
+  <script src="/js/rtc.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

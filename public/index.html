@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tela Bombeiros - Abrir sala de transmissao</title>
+  <link rel="stylesheet" href="/shared/base.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand-mark" data-brand-logo>🔥</div>
+      <div>
+        <h1 data-brand-name>Tela Bombeiros</h1>
+        <p class="tagline" data-brand-tagline>Transmissao de tela ao vivo</p>
+      </div>
+      <div class="spacer"></div>
+      <a class="btn ghost small" href="/admin">Área do administrador</a>
+    </header>
+
+    <main>
+      <section class="card" id="createCard">
+        <h2>Abrir uma sala de transmissao</h2>
+        <p class="hint">
+          Escolha um nome para a sala, abra e comece a compartilhar sua tela. Voce recebe um link de
+          convite para mandar para quem quiser assistir.
+        </p>
+        <form id="createForm">
+          <label for="roomLabel">Nome da sala / de quem transmite</label>
+          <input id="roomLabel" name="roomLabel" type="text" maxlength="80" required
+                 placeholder="Ex.: Sala de operacoes - Turno 1" autocomplete="off" />
+          <div class="row" style="margin-top:16px">
+            <button class="btn" type="submit" id="createBtn">Abrir sala</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="card" id="resultCard" hidden>
+        <h2>Sala criada</h2>
+        <p class="hint">
+          Guarde estes links agora. Por seguranca, o sistema so guarda o "cadeado" deles - se perder,
+          e preciso gerar um novo (isso nao derruba quem ja estiver conectado).
+        </p>
+
+        <label>Link de convite (mande para quem vai assistir)</label>
+        <div class="link-box">
+          <input id="inviteUrl" type="text" readonly />
+          <button class="btn small" type="button" data-copy="inviteUrl">Copiar</button>
+        </div>
+
+        <label style="margin-top:16px">Seu link de transmissor (para voltar a esta sala depois)</label>
+        <div class="link-box">
+          <input id="transmitterUrl" type="text" readonly />
+          <button class="btn small" type="button" data-copy="transmitterUrl">Copiar</button>
+        </div>
+
+        <div class="row" style="margin-top:20px">
+          <a class="btn" id="goToRoom" href="#">Ir para a sala e transmitir</a>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/shared/spotlight.js"></script>
+  <script src="/shared/sparks.js"></script>
+  <script src="/shared/ui.js"></script>
+  <script src="/shared/theme.js"></script>
+  <script>
+    (function () {
+      var form = document.getElementById('createForm');
+      var btn = document.getElementById('createBtn');
+
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        var roomLabel = document.getElementById('roomLabel').value.trim();
+        if (!roomLabel) return;
+        btn.disabled = true;
+        UI.api('/api/rooms', { method: 'POST', body: { roomLabel: roomLabel } })
+          .then(function (data) {
+            document.getElementById('inviteUrl').value = data.invite.url;
+            document.getElementById('transmitterUrl').value = data.transmitterUrl;
+            document.getElementById('goToRoom').href = '/t/' + data.roomId;
+            document.getElementById('createCard').hidden = true;
+            document.getElementById('resultCard').hidden = false;
+          })
+          .catch(function (err) {
+            UI.toast(err.message);
+          })
+          .finally(function () {
+            btn.disabled = false;
+          });
+      });
+
+      document.querySelectorAll('[data-copy]').forEach(function (button) {
+        button.addEventListener('click', function () {
+          UI.copy(document.getElementById(button.dataset.copy).value);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

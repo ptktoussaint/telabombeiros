@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Administrador - entrar</title>
+  <link rel="stylesheet" href="/shared/base.css" />
+</head>
+<body>
+  <div class="page" style="max-width:440px">
+    <header class="topbar">
+      <div class="brand-mark" data-brand-logo>🔥</div>
+      <div>
+        <h1 data-brand-name>Tela Bombeiros</h1>
+        <p class="tagline">Acesso do administrador</p>
+      </div>
+    </header>
+
+    <section class="card">
+      <h2>Entrar</h2>
+      <p class="hint">
+        Atencao: entrar como administrador encerra qualquer papel anterior deste navegador
+        (transmissor ou espectador). Um navegador so pode ter um papel por vez.
+      </p>
+      <form id="loginForm">
+        <label for="username">Usuario</label>
+        <input id="username" type="text" autocomplete="username" required />
+        <label for="password" style="margin-top:12px">Senha</label>
+        <input id="password" type="password" autocomplete="current-password" required />
+        <div class="row" style="margin-top:18px">
+          <button class="btn" type="submit" id="loginBtn">Entrar</button>
+          <a class="btn ghost" href="/">Voltar</a>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <script src="/shared/spotlight.js"></script>
+  <script src="/shared/sparks.js"></script>
+  <script src="/shared/ui.js"></script>
+  <script src="/shared/theme.js"></script>
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function (event) {
+      event.preventDefault();
+      var btn = document.getElementById('loginBtn');
+      btn.disabled = true;
+      UI.api('/api/admin/login', {
+        method: 'POST',
+        body: {
+          username: document.getElementById('username').value,
+          password: document.getElementById('password').value,
+        },
+      })
+        .then(function () { location.href = '/admin'; })
+        .catch(function (err) { UI.toast(err.message); })
+        .finally(function () { btn.disabled = false; });
+    });
+  </script>
+</body>
+</html>
