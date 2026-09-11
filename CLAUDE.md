@@ -31,6 +31,9 @@
     conectado (`readyState !== 1`), devolva o padrao na hora em vez de enfileirar a consulta.
 12. O cartao de compartilhamento (Open Graph) e montado **no servidor**: robo de Discord/WhatsApp
     nao executa JavaScript, entao tema aplicado no navegador nao existe para eles.
-13. Links de convite **nao** ganham cartao de compartilhamento - o nome da sala nao deve vazar em
-    previa de mensagem quando alguem cola o link num grupo.
+13. Link de convite tem cartao proprio: titulo = nome da sala, subtitulo = "Convite de: <nome do
+    convite>", cor = cor principal **daquela sala**. Por isso `/v/:roomId?t=` serve a pagina
+    direto, sem redirecionar: o robo da previa nao carrega cookie e cairia em "sem acesso". Quem
+    tira o token da barra de enderecos e o proprio navegador (`history.replaceState`). O `og:url`
+    do cartao nunca leva o token.
 14. Este projeto **nao tem** nada de prova, exame, questoes, fiscal, aluno ou cronometro de prova.

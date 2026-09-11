@@ -120,6 +120,10 @@ router.put('/api/admin/branding', requireAdmin, async (req, res, next) => {
 
     if (typeof body.siteName === 'string') doc.siteName = body.siteName.trim().slice(0, 60);
     if (typeof body.tagline === 'string') doc.tagline = body.tagline.trim().slice(0, 120);
+    if (typeof body.shareTitle === 'string') doc.shareTitle = body.shareTitle.trim().slice(0, 80);
+    if (typeof body.shareDescription === 'string') {
+      doc.shareDescription = body.shareDescription.trim().slice(0, 180);
+    }
     doc.colors = sanitizeColors(body.colors, doc.colors);
 
     for (const field of ['logoUrl', 'backgroundUrl', 'videoUrl', 'shareImageUrl']) {

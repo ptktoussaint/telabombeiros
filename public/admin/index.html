@@ -76,6 +76,22 @@
         <h3 style="margin:22px 0 10px; font-size:15px">Cores</h3>
         <div class="grid cols-3" id="colorGrid"></div>
 
+        <h3 style="margin:22px 0 10px; font-size:15px">Cartao de compartilhamento</h3>
+        <p class="hint" style="margin-bottom:14px">
+          E o que aparece quando alguem cola o link do site no Discord, WhatsApp ou Telegram.
+          Deixe em branco para usar o nome e a frase do site.
+        </p>
+        <div class="grid cols-2">
+          <div>
+            <label for="shareTitle">Titulo do cartao</label>
+            <input id="shareTitle" type="text" maxlength="80" placeholder="usa o nome do site" />
+          </div>
+          <div>
+            <label for="shareDescription">Subtitulo do cartao</label>
+            <input id="shareDescription" type="text" maxlength="180" placeholder="usa a frase do site" />
+          </div>
+        </div>
+
         <h3 style="margin:22px 0 10px; font-size:15px">Midias</h3>
         <div id="mediaGrid" class="grid cols-2"></div>
 

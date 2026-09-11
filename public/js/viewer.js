@@ -2,6 +2,12 @@
   'use strict';
 
   var roomId = location.pathname.split('/')[2];
+
+  // A pagina agora e servida direto no endereco com o token (para a previa do link
+  // funcionar), entao e aqui que o token sai da barra de enderecos e do historico.
+  if (location.search && window.history && history.replaceState) {
+    history.replaceState({}, '', location.pathname);
+  }
   var socket = io({ withCredentials: true });
   var receiver = null;
   var iceServers = [];

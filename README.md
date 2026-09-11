@@ -110,13 +110,17 @@ pode assumir a aparencia de varias salas ao mesmo tempo.
 
 ### Cartao de compartilhamento
 
-As marcas Open Graph da pagina inicial sao injetadas **no servidor** (`lib/socialCard.js`), porque
-robo de Discord, WhatsApp e Telegram nao executa JavaScript. Titulo e descricao saem do nome e da
-frase do site; a imagem sai de `shareImageUrl` (ou do logo, se vazia); a cor da marca vira o
-`theme-color`, que o Discord usa na barra lateral do cartao.
+As marcas Open Graph sao injetadas **no servidor** (`lib/socialCard.js`), porque robo de Discord,
+WhatsApp e Telegram nao executa JavaScript. Sao dois cartoes diferentes:
 
-Paginas de sala nao recebem essas marcas de proposito: o nome da sala nao deve aparecer em previa de
-mensagem quando o link de convite e colado num grupo.
+**Pagina inicial** - titulo e subtitulo proprios, editaveis pelo admin em Identidade visual
+(`shareTitle` / `shareDescription`); em branco, caem no nome e na frase do site. Imagem de
+`shareImageUrl` ou do logo. Cor da marca vira `theme-color`, que o Discord usa na barra do cartao.
+
+**Link de convite** - titulo = nome da sala, subtitulo = `Convite de: <nome do convite>`, cor =
+cor principal **daquela sala**. Como o robo da previa nao carrega cookie, `/v/:roomId?t=` serve a
+pagina direto em vez de redirecionar; o token sai da barra de enderecos no navegador
+(`history.replaceState`) e o `og:url` do cartao nunca o inclui.
 
 Tamanho recomendado da imagem do cartao: **1200x630**.
 

@@ -8,8 +8,9 @@ const { identifyTransmitter, identifyViewer } = require('./rooms');
 const { isTransmitterOf, isViewerOf, isAdmin, getRole } = require('../lib/sessionRoles');
 const { buildIceServers } = require('../lib/turn');
 const { requireAnyRole } = require('../lib/authz');
-const { getBrandingSafe } = require('../lib/branding');
-const { buildSocialCard } = require('../lib/socialCard');
+const Room = require('../models/Room');
+const { getBrandingSafe, mergeBranding } = require('../lib/branding');
+const { buildSiteCard, buildInviteCard } = require('../lib/socialCard');
 const { baseUrl } = require('../lib/urls');
 
 const router = express.Router();
@@ -19,23 +20,29 @@ function sendPage(res, file) {
   res.sendFile(path.join(PUBLIC_DIR, file));
 }
 
-let indexTemplate = null;
+const templates = {};
 
-function readIndexTemplate() {
-  if (!indexTemplate) {
-    indexTemplate = fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'), 'utf8');
+function readTemplate(file) {
+  if (!templates[file]) {
+    templates[file] = fs.readFileSync(path.join(PUBLIC_DIR, file), 'utf8');
   }
-  return indexTemplate;
+  return templates[file];
+}
+
+function sendWithCard(res, file, cardTags) {
+  return res.type('html').send(readTemplate(file).replace('<!--CARTAO-->', cardTags));
+}
+
+function saveSession(req) {
+  return new Promise((resolve, reject) => {
+    req.session.save((err) => (err ? reject(err) : resolve()));
+  });
 }
 
 router.get('/', async (req, res, next) => {
   try {
     const branding = await getBrandingSafe();
-    const html = readIndexTemplate().replace(
-      '<!--CARTAO-->',
-      buildSocialCard(branding, baseUrl(req))
-    );
-    return res.type('html').send(html);
+    return sendWithCard(res, 'index.html', buildSiteCard(branding, baseUrl(req)));
   } catch (err) {
     return next(err);
   }
@@ -64,16 +71,38 @@ router.get('/t/:roomId', async (req, res, next) => {
 
 router.get('/v/:roomId', async (req, res, next) => {
   try {
+    const negado = () => res.status(403).sendFile(path.join(PUBLIC_DIR, 'sem-acesso.html'));
     const token = req.query.t;
+    let room = null;
+
     if (token) {
-      const room = await identifyViewer(req, req.params.roomId, token);
-      if (!room) return res.status(403).sendFile(path.join(PUBLIC_DIR, 'sem-acesso.html'));
-      return req.session.save(() => res.redirect(`/v/${req.params.roomId}`));
+      room = await identifyViewer(req, req.params.roomId, token);
+      if (!room) return negado();
+      await saveSession(req);
+    } else {
+      if (!isViewerOf(req.session, req.params.roomId)) return negado();
+      room = await Room.findById(req.params.roomId).catch(() => null);
+      if (!room || room.status !== 'active') return negado();
     }
-    if (!isViewerOf(req.session, req.params.roomId)) {
-      return res.status(403).sendFile(path.join(PUBLIC_DIR, 'sem-acesso.html'));
-    }
-    return sendPage(res, 'assistir.html');
+
+    // Sem redirecionamento aqui de proposito: o robo que monta a previa do link nao
+    // carrega cookie, entao ao seguir o redirecionamento cairia na pagina de sem acesso
+    // e nao leria o cartao. O token sai da barra de enderecos no proprio navegador.
+    const global = await getBrandingSafe();
+    const branding = mergeBranding(global, room.branding);
+    const base = baseUrl(req);
+
+    return sendWithCard(
+      res,
+      'assistir.html',
+      buildInviteCard({
+        roomLabel: room.roomLabel,
+        inviteLabel: req.session.viewerLabel,
+        branding,
+        baseUrl: base,
+        url: `${base}/v/${room._id}`,
+      })
+    );
   } catch (err) {
     return next(err);
   }

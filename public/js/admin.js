@@ -459,6 +459,8 @@
     branding = data;
     document.getElementById('siteName').value = data.siteName || '';
     document.getElementById('tagline').value = data.tagline || '';
+    document.getElementById('shareTitle').value = data.shareTitle || '';
+    document.getElementById('shareDescription').value = data.shareDescription || '';
     COLOR_FIELDS.forEach(function (field) {
       var input = document.getElementById('color-' + field[0]);
       if (input) input.value = (data.colors && data.colors[field[0]]) || '#000000';
@@ -485,6 +487,8 @@
     var body = {
       siteName: document.getElementById('siteName').value,
       tagline: document.getElementById('tagline').value,
+      shareTitle: document.getElementById('shareTitle').value,
+      shareDescription: document.getElementById('shareDescription').value,
       colors: colors,
       effects: {
         spotlight: document.getElementById('fxSpotlight').checked,
