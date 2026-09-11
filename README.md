@@ -108,6 +108,25 @@ aparencia de uma sala de vazar para outra.
 O painel do admin mantem a identidade do site mesmo enquanto monitora salas, porque um so painel nao
 pode assumir a aparencia de varias salas ao mesmo tempo.
 
+### Cartao de compartilhamento
+
+As marcas Open Graph da pagina inicial sao injetadas **no servidor** (`lib/socialCard.js`), porque
+robo de Discord, WhatsApp e Telegram nao executa JavaScript. Titulo e descricao saem do nome e da
+frase do site; a imagem sai de `shareImageUrl` (ou do logo, se vazia); a cor da marca vira o
+`theme-color`, que o Discord usa na barra lateral do cartao.
+
+Paginas de sala nao recebem essas marcas de proposito: o nome da sala nao deve aparecer em previa de
+mensagem quando o link de convite e colado num grupo.
+
+Tamanho recomendado da imagem do cartao: **1200x630**.
+
+### Remover um espectador
+
+O dono da sala pode desconectar um espectador pela lista. A sessao dele fica bloqueada **naquela
+sala** (em memoria, `liveState.blockSession`) para ele nao voltar recarregando a pagina. Nao e
+banimento permanente: reinicio do servidor limpa, e outro navegador com o mesmo link entra de novo.
+Para remocao definitiva, revogue o link de convite.
+
 ### Tokens
 
 Do token do transmissor e de cada convite so o **hash sha256** vai para o banco, igual senha. O valor

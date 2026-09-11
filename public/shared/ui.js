@@ -95,7 +95,79 @@
     frame.appendChild(el);
   }
 
+  // Monta a linha padrao de pessoa/convite usada na sala e na central,
+  // para as tres listas do sistema terem sempre o mesmo desenho.
+  function personRow(opts) {
+    var li = document.createElement('li');
+
+    if (opts.empty) {
+      li.className = 'plain';
+      li.textContent = opts.empty;
+      return li;
+    }
+
+    var dot = document.createElement('span');
+    dot.className = 'row-dot' + (opts.dot ? ' ' + opts.dot : '');
+
+    var main = document.createElement('div');
+    main.className = 'row-main';
+
+    var name = document.createElement('span');
+    name.className = 'row-name' + (opts.struck ? ' off' : '');
+    name.textContent = opts.name;
+    name.title = opts.name;
+    main.appendChild(name);
+
+    if (opts.meta) {
+      var meta = document.createElement('span');
+      meta.className = 'row-meta';
+      meta.textContent = opts.meta;
+      main.appendChild(meta);
+    }
+
+    var actions = document.createElement('div');
+    actions.className = 'row-actions';
+
+    if (opts.pill) {
+      var pill = document.createElement('span');
+      pill.className = 'pill' + (opts.pillClass ? ' ' + opts.pillClass : '');
+      pill.textContent = opts.pill;
+      actions.appendChild(pill);
+    }
+
+    (opts.buttons || []).forEach(function (btn) {
+      if (btn) actions.appendChild(btn);
+    });
+
+    li.appendChild(dot);
+    li.appendChild(main);
+    li.appendChild(actions);
+    return li;
+  }
+
+  function actionButton(label, className, onClick, data) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn small ' + (className || 'ghost');
+    btn.textContent = label;
+    if (data) {
+      Object.keys(data).forEach(function (key) {
+        btn.dataset[key] = data[key];
+      });
+    }
+    if (onClick) btn.addEventListener('click', onClick);
+    return btn;
+  }
+
+  function formatDate(ts) {
+    if (!ts) return '';
+    return new Date(ts).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  }
+
   window.UI = {
+    personRow: personRow,
+    actionButton: actionButton,
+    formatDate: formatDate,
     toast: toast,
     copy: copy,
     api: api,

@@ -16,6 +16,9 @@ async function withServer(fn) {
   try {
     await fn(base);
   } finally {
+    // fetch deixa conexoes keep-alive abertas; sem derrubar, o processo de teste
+    // fica segundos parado esperando elas expirarem sozinhas.
+    if (typeof server.closeAllConnections === 'function') server.closeAllConnections();
     server.close();
   }
 }

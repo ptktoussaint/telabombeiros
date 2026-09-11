@@ -101,8 +101,30 @@
     receiver = null;
   });
 
+  function encerrarSessao(mensagem) {
+    if (receiver) {
+      receiver.close();
+      receiver = null;
+    }
+    els.video.srcObject = null;
+    setStatus('error');
+    els.statusText.textContent = 'Desconectado';
+    document.getElementById('hint').textContent = mensagem;
+    // Sem isso o socket.io tentaria reconectar sozinho e a pessoa voltaria em loop.
+    socket.disconnect();
+    UI.toast(mensagem);
+  }
+
+  socket.on('viewer:kicked', function () {
+    encerrarSessao('Quem esta transmitindo removeu voce desta sala.');
+  });
+
   socket.on('auth:error', function (payload) {
-    UI.toast(payload.error || 'Link invalido.');
+    if (payload && payload.kicked) {
+      encerrarSessao(payload.error || 'Voce foi removido desta sala.');
+      return;
+    }
+    UI.toast((payload && payload.error) || 'Link invalido.');
   });
 
   socket.on('disconnect', function () {

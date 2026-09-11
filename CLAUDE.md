@@ -27,4 +27,10 @@
 10. Identidade visual da sala **sobrepoe** a do site, nunca a substitui nem a altera: campo vazio na
     sala significa "usar o do site", e a mesclagem (`mergeBranding`) jamais pode mutar o objeto
     global - se mutar, a aparencia de uma sala vaza para as outras.
-11. Este projeto **nao tem** nada de prova, exame, questoes, fiscal, aluno ou cronometro de prova.
+11. Consulta ao banco em pagina publica **nunca** pode pendurar a resposta: se o Mongo nao estiver
+    conectado (`readyState !== 1`), devolva o padrao na hora em vez de enfileirar a consulta.
+12. O cartao de compartilhamento (Open Graph) e montado **no servidor**: robo de Discord/WhatsApp
+    nao executa JavaScript, entao tema aplicado no navegador nao existe para eles.
+13. Links de convite **nao** ganham cartao de compartilhamento - o nome da sala nao deve vazar em
+    previa de mensagem quando alguem cola o link num grupo.
+14. Este projeto **nao tem** nada de prova, exame, questoes, fiscal, aluno ou cronometro de prova.

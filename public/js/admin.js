@@ -34,6 +34,7 @@
     ['logoUrl', 'Logo', 'image'],
     ['backgroundUrl', 'Imagem de fundo', 'image'],
     ['videoUrl', 'Video institucional', 'video'],
+    ['shareImageUrl', 'Imagem do cartao de link (1200x630)', 'image'],
   ];
 
   /* ---------------------------------------------------------------- abas */
@@ -100,15 +101,6 @@
       card.className = 'card';
       card.dataset.roomCard = room.roomId;
 
-      var invites = room.invites
-        .map(function (invite) {
-          var action = invite.active
-            ? '<button class="btn ghost small" data-revoke="' + invite.id + '" data-room="' + room.roomId + '">Revogar</button>'
-            : '<span class="muted small">revogado</span>';
-          return '<li><span>' + invite.label + '</span>' + action + '</li>';
-        })
-        .join('');
-
       card.innerHTML =
         '<div class="row" style="justify-content:space-between; align-items:flex-start">' +
         '<div><h3 style="margin:0">' + room.roomLabel + '</h3>' +
@@ -118,7 +110,7 @@
         '<p class="small" style="margin:12px 0 0">Espectadores agora: <strong data-viewers="' + room.roomId + '">' +
         (live ? live.viewerCount : 0) + '</strong></p>' +
         '<h4 class="small muted" style="margin:16px 0 4px">Links de convite</h4>' +
-        '<ul class="list">' + (invites || '<li class="muted small">nenhum</li>') + '</ul>' +
+        '<ul class="list" data-invites="' + room.roomId + '"></ul>' +
         '<div class="row" style="margin-top:14px">' +
         (room.status === 'active'
           ? '<button class="btn ghost small" data-watch="' + room.roomId + '">Monitorar</button>' +
@@ -127,6 +119,27 @@
         '</div>';
 
       container.appendChild(card);
+
+      var lista = card.querySelector('[data-invites="' + room.roomId + '"]');
+      if (!room.invites.length) {
+        lista.appendChild(UI.personRow({ empty: 'Nenhum convite gerado.' }));
+      } else {
+        room.invites.forEach(function (invite) {
+          lista.appendChild(
+            UI.personRow({
+              dot: invite.active ? 'on' : 'off',
+              name: invite.label,
+              meta: invite.createdAt ? 'criado em ' + UI.formatDate(invite.createdAt) : '',
+              struck: !invite.active,
+              pill: invite.active ? 'Ativo' : 'Revogado',
+              pillClass: invite.active ? 'on' : 'off',
+              buttons: invite.active
+                ? [UI.actionButton('Revogar', 'danger', null, { revoke: invite.id, room: room.roomId })]
+                : [],
+            })
+          );
+        });
+      }
     });
   }
 
@@ -244,19 +257,17 @@
       countBox.textContent = '(' + lista.length + ')';
       viewersBox.innerHTML = '';
       if (!lista.length) {
-        viewersBox.innerHTML = '<li class="muted">Ninguem assistindo agora.</li>';
+        viewersBox.appendChild(UI.personRow({ empty: 'Ninguem assistindo agora.' }));
         return;
       }
       lista.forEach(function (viewer) {
-        var li = document.createElement('li');
-        var nome = document.createElement('span');
-        nome.textContent = viewer.label || 'Espectador';
-        var desde = document.createElement('span');
-        desde.className = 'muted';
-        desde.textContent = 'desde ' + UI.formatTime(viewer.joinedAt);
-        li.appendChild(nome);
-        li.appendChild(desde);
-        viewersBox.appendChild(li);
+        viewersBox.appendChild(
+          UI.personRow({
+            dot: 'on',
+            name: viewer.label || 'Espectador',
+            meta: 'entrou as ' + UI.formatTime(viewer.joinedAt),
+          })
+        );
       });
     }
 
@@ -264,29 +275,23 @@
       var lista = invites || [];
       invitesBox.innerHTML = '';
       if (!lista.length) {
-        invitesBox.innerHTML = '<li class="muted">Nenhum convite gerado.</li>';
+        invitesBox.appendChild(UI.personRow({ empty: 'Nenhum convite gerado.' }));
         return;
       }
       lista.forEach(function (invite) {
-        var li = document.createElement('li');
-        var nome = document.createElement('span');
-        nome.textContent = invite.label;
-        if (!invite.active) nome.className = 'muted struck';
-        li.appendChild(nome);
-        if (invite.active) {
-          var btn = document.createElement('button');
-          btn.className = 'btn ghost small';
-          btn.textContent = 'Revogar';
-          btn.dataset.revoke = invite.id;
-          btn.dataset.room = roomId;
-          li.appendChild(btn);
-        } else {
-          var tag = document.createElement('span');
-          tag.className = 'muted';
-          tag.textContent = 'revogado';
-          li.appendChild(tag);
-        }
-        invitesBox.appendChild(li);
+        invitesBox.appendChild(
+          UI.personRow({
+            dot: invite.active ? 'on' : 'off',
+            name: invite.label,
+            meta: invite.createdAt ? 'criado em ' + UI.formatDate(invite.createdAt) : '',
+            struck: !invite.active,
+            pill: invite.active ? 'Ativo' : 'Revogado',
+            pillClass: invite.active ? 'on' : 'off',
+            buttons: invite.active
+              ? [UI.actionButton('Revogar', 'danger', null, { revoke: invite.id, room: roomId })]
+              : [],
+          })
+        );
       });
     }
 

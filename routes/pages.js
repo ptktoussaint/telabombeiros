@@ -1,12 +1,16 @@
 'use strict';
 
 const path = require('path');
+const fs = require('fs');
 const express = require('express');
 
 const { identifyTransmitter, identifyViewer } = require('./rooms');
 const { isTransmitterOf, isViewerOf, isAdmin, getRole } = require('../lib/sessionRoles');
 const { buildIceServers } = require('../lib/turn');
 const { requireAnyRole } = require('../lib/authz');
+const { getBrandingSafe } = require('../lib/branding');
+const { buildSocialCard } = require('../lib/socialCard');
+const { baseUrl } = require('../lib/urls');
 
 const router = express.Router();
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
@@ -15,7 +19,27 @@ function sendPage(res, file) {
   res.sendFile(path.join(PUBLIC_DIR, file));
 }
 
-router.get('/', (req, res) => sendPage(res, 'index.html'));
+let indexTemplate = null;
+
+function readIndexTemplate() {
+  if (!indexTemplate) {
+    indexTemplate = fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'), 'utf8');
+  }
+  return indexTemplate;
+}
+
+router.get('/', async (req, res, next) => {
+  try {
+    const branding = await getBrandingSafe();
+    const html = readIndexTemplate().replace(
+      '<!--CARTAO-->',
+      buildSocialCard(branding, baseUrl(req))
+    );
+    return res.type('html').send(html);
+  } catch (err) {
+    return next(err);
+  }
+});
 router.get('/admin', (req, res) => sendPage(res, 'admin/index.html'));
 router.get('/admin/login', (req, res) => sendPage(res, 'admin/login.html'));
 

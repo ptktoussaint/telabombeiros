@@ -51,25 +51,44 @@
     });
   }
 
+  var VIEWER_STATE = {
+    connected: { dot: 'on', pill: 'Ao vivo', cls: 'on' },
+    failed: { dot: 'off', pill: 'Falhou', cls: 'off' },
+  };
+
   function renderViewers() {
     var visiveis = visibleViewers();
     els.viewerCount.textContent = '(' + visiveis.length + ')';
     els.viewerList.innerHTML = '';
+
     if (!visiveis.length) {
-      els.viewerList.innerHTML = '<li class="muted small">Ninguem conectado ainda.</li>';
+      els.viewerList.appendChild(UI.personRow({ empty: 'Ninguem conectado ainda.' }));
       return;
     }
+
     visiveis.forEach(function (viewer) {
-      var li = document.createElement('li');
-      var name = document.createElement('span');
-      name.textContent = viewer.label;
-      var badge = document.createElement('span');
-      badge.className = 'badge' + (viewer.state === 'connected' ? ' live' : viewer.state === 'failed' ? ' error' : '');
-      badge.innerHTML = '<span class="dot"></span>' + (viewer.state || 'conectando');
-      li.appendChild(name);
-      li.appendChild(badge);
-      els.viewerList.appendChild(li);
+      var estado = VIEWER_STATE[viewer.state] || { dot: 'wait', pill: 'Conectando', cls: 'wait' };
+      els.viewerList.appendChild(
+        UI.personRow({
+          dot: estado.dot,
+          name: viewer.label,
+          meta: viewer.joinedAt ? 'entrou as ' + UI.formatTime(viewer.joinedAt) : '',
+          pill: estado.pill,
+          pillClass: estado.cls,
+          buttons: [
+            UI.actionButton('Desconectar', 'danger', function () {
+              kickViewer(viewer);
+            }),
+          ],
+        })
+      );
     });
+  }
+
+  function kickViewer(viewer) {
+    if (!confirm('Desconectar "' + viewer.label + '" desta transmissao?')) return;
+    socket.emit('viewer:kick', { viewerId: viewer.viewerId });
+    UI.toast(viewer.label + ' foi desconectado.');
   }
 
   function sendOffer(viewerId, sdp) {
@@ -178,30 +197,35 @@
 
   function renderInvites(invites) {
     els.inviteList.innerHTML = '';
+
     if (!invites.length) {
-      els.inviteList.innerHTML = '<li class="muted small">Nenhum convite gerado.</li>';
+      els.inviteList.appendChild(UI.personRow({ empty: 'Nenhum convite gerado.' }));
       return;
     }
+
     invites.forEach(function (invite) {
-      var li = document.createElement('li');
-      var left = document.createElement('span');
-      left.innerHTML =
-        '<strong>' + invite.label + '</strong><br><span class="muted small">' +
-        (invite.active ? 'ativo' : 'revogado') + '</span>';
-      li.appendChild(left);
-      if (invite.active) {
-        var btn = document.createElement('button');
-        btn.className = 'btn ghost small';
-        btn.textContent = 'Revogar';
-        btn.addEventListener('click', function () {
-          UI.api('/api/rooms/' + roomId + '/invites/' + invite.id + '/revoke', { method: 'POST' })
-            .then(loadRoom)
-            .then(function () { UI.toast('Convite revogado.'); })
-            .catch(function (err) { UI.toast(err.message); });
-        });
-        li.appendChild(btn);
-      }
-      els.inviteList.appendChild(li);
+      var criado = UI.formatDate(invite.createdAt);
+      els.inviteList.appendChild(
+        UI.personRow({
+          dot: invite.active ? 'on' : 'off',
+          name: invite.label,
+          meta: criado ? 'criado em ' + criado : '',
+          struck: !invite.active,
+          pill: invite.active ? 'Ativo' : 'Revogado',
+          pillClass: invite.active ? 'on' : 'off',
+          buttons: invite.active
+            ? [
+                UI.actionButton('Revogar', 'danger', function () {
+                  if (!confirm('Revogar "' + invite.label + '"? Quem tiver esse link perde o acesso.')) return;
+                  UI.api('/api/rooms/' + roomId + '/invites/' + invite.id + '/revoke', { method: 'POST' })
+                    .then(loadRoom)
+                    .then(function () { UI.toast('Convite revogado.'); })
+                    .catch(function (err) { UI.toast(err.message); });
+                }),
+              ]
+            : [],
+        })
+      );
     });
   }
 
@@ -237,6 +261,7 @@
       label: payload.label,
       hidden: Boolean(payload.hidden),
       state: 'conectando',
+      joinedAt: Date.now(),
     });
     renderViewers();
     connectViewer(payload.viewerId);

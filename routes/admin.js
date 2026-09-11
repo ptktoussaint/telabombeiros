@@ -122,7 +122,7 @@ router.put('/api/admin/branding', requireAdmin, async (req, res, next) => {
     if (typeof body.tagline === 'string') doc.tagline = body.tagline.trim().slice(0, 120);
     doc.colors = sanitizeColors(body.colors, doc.colors);
 
-    for (const field of ['logoUrl', 'backgroundUrl', 'videoUrl']) {
+    for (const field of ['logoUrl', 'backgroundUrl', 'videoUrl', 'shareImageUrl']) {
       if (body[field] === undefined) continue;
       const value = sanitizeMediaUrl(body[field]);
       if (value === null) return res.status(400).json({ error: `Link invalido em ${field}.` });

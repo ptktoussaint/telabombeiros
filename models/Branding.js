@@ -22,6 +22,7 @@ const brandingSchema = new mongoose.Schema({
   logoUrl: { type: String, default: '' },
   backgroundUrl: { type: String, default: '' },
   videoUrl: { type: String, default: '' },
+  shareImageUrl: { type: String, default: '' },
   effects: {
     type: Object,
     default: () => ({ spotlight: true, sparks: true }),
