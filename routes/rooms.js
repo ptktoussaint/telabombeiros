@@ -8,6 +8,7 @@ const { requireTransmitter, requireRoomAccess } = require('../lib/authz');
 const { getBranding, mergeBranding, sanitizeColors, sanitizeMediaUrl } = require('../lib/branding');
 const { transmitterUrl, inviteUrl } = require('../lib/urls');
 const { liveState } = require('../lib/liveState');
+const { closeRoom: encerrarSala } = require('../lib/roomLifecycle');
 
 const router = express.Router();
 
@@ -133,14 +134,8 @@ async function closeRoom(req, res, next) {
   try {
     const room = await Room.findById(req.params.roomId);
     if (!room) return res.status(404).json({ error: 'Sala nao encontrada.' });
-    if (room.status !== 'closed') {
-      room.status = 'closed';
-      room.closedAt = new Date();
-      await room.save();
-    }
-    req.app.get('io')?.to(`room:${room._id}`).emit('room:closed', { roomId: String(room._id) });
-    liveState.dropRoom(String(room._id));
-    return res.json({ roomId: String(room._id), status: room.status });
+    await encerrarSala(req.app.get('io'), room._id, 'host-ended');
+    return res.json({ roomId: String(room._id), status: 'closed' });
   } catch (err) {
     return next(err);
   }

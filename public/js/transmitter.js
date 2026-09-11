@@ -235,9 +235,25 @@
   els.closeRoomBtn.addEventListener('click', function () {
     if (!confirm('Encerrar a sala? Todos os espectadores serao desconectados.')) return;
     UI.api('/api/rooms/' + roomId + '/close', { method: 'POST' })
-      .then(function () { location.href = '/'; })
+      .then(encerrarNaTela)
       .catch(function (err) { UI.toast(err.message); });
   });
+
+  function encerrarNaTela() {
+    if (localStream) localStream.getTracks().forEach(function (t) { t.stop(); });
+    localStream = null;
+    els.preview.srcObject = null;
+    senders.forEach(function (sender) { sender.close(); });
+    senders.clear();
+    socket.disconnect();
+    UI.showRoomEnded({
+      roomLabel: els.roomTitle.textContent,
+      message: 'A sala foi encerrada pelo Host',
+      note: 'Todos os espectadores foram desconectados.',
+    });
+  }
+
+  socket.on('room:closed', encerrarNaTela);
 
   document.getElementById('newInviteBtn').addEventListener('click', function () {
     var label = document.getElementById('inviteLabel').value.trim();
@@ -299,8 +315,11 @@
   });
 
   socket.on('auth:error', function (payload) {
-    UI.toast(payload.error || 'Sessao invalida.');
-    setTimeout(function () { location.href = '/'; }, 1500);
+    if (payload && payload.closed) {
+      encerrarNaTela();
+      return;
+    }
+    UI.toast((payload && payload.error) || 'Sessao invalida.');
   });
 
   socket.on('disconnect', function () {

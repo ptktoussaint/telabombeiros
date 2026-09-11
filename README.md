@@ -124,6 +124,23 @@ pagina direto em vez de redirecionar; o token sai da barra de enderecos no naveg
 
 Tamanho recomendado da imagem do cartao: **1200x630**.
 
+### Fim da sala
+
+A sala acaba de duas formas, e as duas passam por `lib/roomLifecycle.js`:
+
+1. **O host clica em "Encerrar sala".**
+2. **O host sai** (fecha a aba, perde a conexao). Aqui ha uma folga de `GRACE_MS` antes de encerrar,
+   porque um refresh da pagina dele ou uma oscilacao de rede tambem derruba o socket - sem a folga,
+   um tropeco de rede mataria a transmissao de todo mundo sem volta. Se ele voltar dentro da folga,
+   o encerramento e cancelado.
+
+Nos dois casos o servidor marca a sala como `closed`, emite `room:closed` para o canal e derruba as
+conexoes. **O socket do admin nunca e derrubado** - ele atende varias salas ao mesmo tempo, entao
+apenas sai do canal daquela sala.
+
+Ninguem e redirecionado para a tela inicial: host e espectadores ficam numa tela com o tema daquela
+sala e a mensagem "A sala foi encerrada pelo Host".
+
 ### Remover um espectador
 
 O dono da sala pode desconectar um espectador pela lista. A sessao dele fica bloqueada **naquela

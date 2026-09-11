@@ -36,4 +36,11 @@
     direto, sem redirecionar: o robo da previa nao carrega cookie e cairia em "sem acesso". Quem
     tira o token da barra de enderecos e o proprio navegador (`history.replaceState`). O `og:url`
     do cartao nunca leva o token.
-14. Este projeto **nao tem** nada de prova, exame, questoes, fiscal, aluno ou cronometro de prova.
+14. Host saiu = sala encerrada, mas **nunca na hora**: ha uma folga (`GRACE_MS` em
+    `lib/roomLifecycle.js`) para o host sobreviver a um refresh ou a uma oscilacao de rede. Se ele
+    voltar dentro dela, o encerramento e cancelado.
+15. Ao encerrar uma sala, **jamais** derrube o socket do admin: ele atende varias salas de uma vez
+    e desconectar cortaria o monitoramento de todas. Ele so sai do canal daquela sala.
+16. Sala encerrada **nao redireciona ninguem** para a tela inicial: todos (host incluso) ficam numa
+    tela com o tema daquela sala e a mensagem de encerramento.
+17. Este projeto **nao tem** nada de prova, exame, questoes, fiscal, aluno ou cronometro de prova.

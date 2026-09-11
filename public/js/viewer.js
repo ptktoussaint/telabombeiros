@@ -101,10 +101,16 @@
   });
 
   socket.on('room:closed', function () {
-    setStatus('awaiting');
-    UI.toast('A sala foi encerrada.');
-    if (receiver) receiver.close();
-    receiver = null;
+    if (receiver) {
+      receiver.close();
+      receiver = null;
+    }
+    els.video.srcObject = null;
+    socket.disconnect();
+    UI.showRoomEnded({
+      roomLabel: els.roomTitle.textContent,
+      message: 'A sala foi encerrada pelo Host',
+    });
   });
 
   function encerrarSessao(mensagem) {
@@ -128,6 +134,16 @@
   socket.on('auth:error', function (payload) {
     if (payload && payload.kicked) {
       encerrarSessao(payload.error || 'Voce foi removido desta sala.');
+      return;
+    }
+    if (payload && payload.closed) {
+      if (receiver) { receiver.close(); receiver = null; }
+      els.video.srcObject = null;
+      socket.disconnect();
+      UI.showRoomEnded({
+        roomLabel: els.roomTitle.textContent,
+        message: 'A sala foi encerrada pelo Host',
+      });
       return;
     }
     UI.toast((payload && payload.error) || 'Link invalido.');

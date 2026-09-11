@@ -164,7 +164,57 @@
     return new Date(ts).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
   }
 
+  // Sala encerrada: nao redireciona ninguem, so cobre a pagina com o tema da sala.
+  function showRoomEnded(opts) {
+    var config = opts || {};
+    if (document.querySelector('.ended-overlay')) return;
+
+    var overlay = document.createElement('div');
+    overlay.className = 'ended-overlay';
+
+    var box = document.createElement('div');
+    box.className = 'ended-box';
+
+    var mark = document.createElement('div');
+    mark.className = 'ended-mark';
+    var branding = window.__branding || {};
+    if (branding.logoUrl) {
+      var img = document.createElement('img');
+      img.src = branding.logoUrl;
+      img.alt = '';
+      img.onerror = function () { mark.textContent = '🔥'; };
+      mark.appendChild(img);
+    } else {
+      mark.textContent = '🔥';
+    }
+    box.appendChild(mark);
+
+    if (config.roomLabel) {
+      var room = document.createElement('p');
+      room.className = 'ended-room';
+      room.textContent = config.roomLabel;
+      box.appendChild(room);
+    }
+
+    var title = document.createElement('h2');
+    title.className = 'ended-title';
+    title.textContent = config.message || 'A sala foi encerrada pelo Host';
+    box.appendChild(title);
+
+    if (config.note) {
+      var note = document.createElement('p');
+      note.className = 'ended-note';
+      note.textContent = config.note;
+      box.appendChild(note);
+    }
+
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    document.title = config.message || 'Sala encerrada';
+  }
+
   window.UI = {
+    showRoomEnded: showRoomEnded,
     personRow: personRow,
     actionButton: actionButton,
     formatDate: formatDate,

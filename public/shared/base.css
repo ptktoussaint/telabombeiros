@@ -541,6 +541,72 @@ input[type="range"]:focus-visible { outline: 2px solid var(--brand); outline-off
 
 .struck { text-decoration: line-through; }
 
+/* Tela de sala encerrada: cobre a pagina inteira usando as cores que aquela
+   sala escolheu, porque as variaveis de tema ja estao aplicadas no documento. */
+.ended-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  text-align: center;
+  background:
+    radial-gradient(900px 600px at 50% 0%, color-mix(in srgb, var(--brand-deep) 55%, transparent), transparent 70%),
+    color-mix(in srgb, var(--ink) 94%, black);
+  animation: ended-in 260ms ease-out;
+}
+
+@keyframes ended-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.ended-box { max-width: 460px; }
+
+.ended-mark {
+  width: 78px;
+  height: 78px;
+  margin: 0 auto 22px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  font-size: 34px;
+  overflow: hidden;
+  background: linear-gradient(145deg, var(--brand), var(--brand-deep));
+  box-shadow: 0 0 40px color-mix(in srgb, var(--brand) 45%, transparent);
+}
+
+.ended-mark img { width: 100%; height: 100%; object-fit: cover; }
+
+.ended-room {
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+
+.ended-title {
+  font-size: clamp(21px, 5vw, 27px);
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0;
+  color: var(--text);
+  text-wrap: balance;
+}
+
+.ended-note {
+  margin: 16px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ended-overlay { animation: none; }
+}
+
 .empty {
   text-align: center;
   padding: 34px 16px;
