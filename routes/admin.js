@@ -11,7 +11,13 @@ const config = require('../lib/config');
 const { setRole, clearRoles, isAdmin } = require('../lib/sessionRoles');
 const { requireAdmin } = require('../lib/authz');
 const { liveState } = require('../lib/liveState');
-const { getBranding, serializeBranding, sanitizeColors, sanitizeMediaUrl } = require('../lib/branding');
+const {
+  getBranding,
+  serializeBranding,
+  sanitizeColors,
+  sanitizeMediaUrl,
+  sanitizeEffects,
+} = require('../lib/branding');
 
 const router = express.Router();
 
@@ -124,10 +130,7 @@ router.put('/api/admin/branding', requireAdmin, async (req, res, next) => {
     }
 
     if (body.effects && typeof body.effects === 'object') {
-      doc.effects = {
-        spotlight: body.effects.spotlight !== false,
-        sparks: body.effects.sparks !== false,
-      };
+      doc.effects = sanitizeEffects(body.effects, doc.effects);
     }
 
     doc.updatedAt = new Date();

@@ -4,7 +4,8 @@ const express = require('express');
 const Room = require('../models/Room');
 const { generateToken, hashToken, tokenMatches } = require('../lib/tokens');
 const { setRole, isAdmin, isTransmitterOf } = require('../lib/sessionRoles');
-const { requireTransmitter } = require('../lib/authz');
+const { requireTransmitter, requireRoomAccess } = require('../lib/authz');
+const { getBranding, mergeBranding, sanitizeColors, sanitizeMediaUrl } = require('../lib/branding');
 const { transmitterUrl, inviteUrl } = require('../lib/urls');
 const { liveState } = require('../lib/liveState');
 
@@ -140,6 +141,63 @@ async function closeRoom(req, res, next) {
     req.app.get('io')?.to(`room:${room._id}`).emit('room:closed', { roomId: String(room._id) });
     liveState.dropRoom(String(room._id));
     return res.json({ roomId: String(room._id), status: room.status });
+  } catch (err) {
+    return next(err);
+  }
+}
+
+// Identidade visual da sala: quem esta na sala le, so o dono (ou o admin) escreve.
+router.get('/api/rooms/:roomId/branding', requireRoomAccess, async (req, res, next) => {
+  try {
+    const room = await Room.findById(req.params.roomId).select('branding');
+    if (!room) return res.status(404).json({ error: 'Sala nao encontrada.' });
+    const global = await getBranding();
+    return res.json(mergeBranding(global, room.branding));
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.put('/api/rooms/:roomId/branding', (req, res, next) => {
+  if (!isAdmin(req.session) && !isTransmitterOf(req.session, req.params.roomId)) {
+    return res.status(403).json({ error: 'Sem permissao para mudar a identidade desta sala.' });
+  }
+  return saveRoomBranding(req, res, next);
+});
+
+async function saveRoomBranding(req, res, next) {
+  try {
+    const room = await Room.findById(req.params.roomId);
+    if (!room) return res.status(404).json({ error: 'Sala nao encontrada.' });
+    if (room.status !== 'active') return res.status(409).json({ error: 'Sala encerrada.' });
+
+    const body = req.body || {};
+    if (!room.branding) room.branding = {};
+
+    if (body.reset === true) {
+      room.branding = { colors: {}, logoUrl: '', backgroundUrl: '', updatedAt: new Date() };
+    } else {
+      if (body.colors !== undefined) {
+        room.branding.colors = sanitizeColors(body.colors, room.branding.colors || {});
+      }
+      for (const field of ['logoUrl', 'backgroundUrl']) {
+        if (body[field] === undefined) continue;
+        const value = sanitizeMediaUrl(body[field]);
+        if (value === null) return res.status(400).json({ error: `Link invalido em ${field}.` });
+        room.branding[field] = value;
+      }
+      room.branding.updatedAt = new Date();
+    }
+
+    room.markModified('branding');
+    await room.save();
+
+    const global = await getBranding();
+    const merged = mergeBranding(global, room.branding);
+
+    // Todo mundo que ja esta na sala muda de aparencia na hora, sem recarregar.
+    req.app.get('io')?.to(`room:${room._id}`).emit('room:branding', merged);
+    return res.json(merged);
   } catch (err) {
     return next(err);
   }

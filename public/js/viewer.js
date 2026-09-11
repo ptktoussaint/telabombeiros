@@ -89,6 +89,11 @@
     UI.toast('Nao foi possivel recuperar a conexao. Recarregue a pagina.');
   });
 
+  // A aparencia da sala pode mudar no meio da transmissao; aplica na hora.
+  socket.on('room:branding', function (branding) {
+    Theme.applyBranding(branding);
+  });
+
   socket.on('room:closed', function () {
     setStatus('awaiting');
     UI.toast('A sala foi encerrada.');
@@ -131,6 +136,8 @@
     socket.emit('webrtc:request-renegotiate', {});
     setStatus('connecting');
   });
+
+  Theme.loadRoomBranding(roomId);
 
   UI.api('/api/session')
     .then(function (data) {

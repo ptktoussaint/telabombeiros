@@ -467,6 +467,9 @@
     });
     document.getElementById('fxSpotlight').checked = !data.effects || data.effects.spotlight !== false;
     document.getElementById('fxSparks').checked = !data.effects || data.effects.sparks !== false;
+    var rate = data.effects && data.effects.sparkRate !== undefined ? data.effects.sparkRate : 20;
+    document.getElementById('fxSparkRate').value = rate;
+    document.getElementById('fxSparkRateValue').textContent = rate;
   }
 
   function saveBranding() {
@@ -481,6 +484,7 @@
       effects: {
         spotlight: document.getElementById('fxSpotlight').checked,
         sparks: document.getElementById('fxSparks').checked,
+        sparkRate: Number(document.getElementById('fxSparkRate').value),
       },
     };
     MEDIA_FIELDS.forEach(function (field) {
@@ -579,6 +583,18 @@
         .catch(function (err) { UI.toast(err.message); });
     }
   });
+
+  // A barra mexe nas fagulhas na hora, antes de salvar, para o admin ver o que esta escolhendo.
+  function previewSparks() {
+    var rate = Number(document.getElementById('fxSparkRate').value);
+    document.getElementById('fxSparkRateValue').textContent = rate;
+    if (window.Sparks) {
+      window.Sparks.setIntensity(document.getElementById('fxSparks').checked ? rate : 0);
+    }
+  }
+
+  document.getElementById('fxSparkRate').addEventListener('input', previewSparks);
+  document.getElementById('fxSparks').addEventListener('change', previewSparks);
 
   document.getElementById('refreshRooms').addEventListener('click', loadRooms);
   document.getElementById('showClosed').addEventListener('change', loadRooms);

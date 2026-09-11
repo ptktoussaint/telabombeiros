@@ -6,7 +6,7 @@
   <title>Transmitir tela</title>
   <link rel="stylesheet" href="/shared/base.css" />
 </head>
-<body>
+<body data-branding-room>
   <div class="page">
     <header class="topbar">
       <div class="brand-mark" data-brand-logo>🔥</div>
@@ -15,8 +15,25 @@
         <p class="tagline">Voce e o transmissor desta sala</p>
       </div>
       <div class="spacer"></div>
+      <button class="btn ghost small" id="brandBtn" type="button">Identidade visual</button>
       <span class="badge" id="statusBadge"><span class="dot"></span><span id="statusText">Aguardando</span></span>
     </header>
+
+    <section class="card" id="brandPanel" hidden style="margin-bottom:18px">
+      <h2>Identidade visual desta sala</h2>
+      <p class="hint">
+        Vale so para esta sala e muda na hora para todo mundo que ja esta assistindo, sem ninguem
+        precisar recarregar. O que voce deixar em branco continua usando o padrao do site.
+      </p>
+      <h3 style="font-size:14px; margin:16px 0 10px">Cores</h3>
+      <div class="grid cols-3" id="roomColors"></div>
+      <h3 style="font-size:14px; margin:20px 0 10px">Logo e imagem de fundo</h3>
+      <div class="grid cols-2" id="roomMedia"></div>
+      <div class="row" style="margin-top:20px">
+        <button class="btn" id="saveBrand" type="button">Salvar e aplicar</button>
+        <button class="btn ghost" id="resetBrand" type="button">Voltar ao padrao do site</button>
+      </div>
+    </section>
 
     <main class="grid" style="grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); align-items:start">
       <div>

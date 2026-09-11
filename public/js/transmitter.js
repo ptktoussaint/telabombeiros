@@ -282,6 +282,128 @@
     setStatus('reconnecting');
   });
 
+  /* ------------------------------------- identidade visual desta sala */
+
+  var COLOR_FIELDS = [
+    ['brand', 'Cor principal', '--brand'],
+    ['brandDeep', 'Principal escura', '--brand-deep'],
+    ['ember', 'Brasa / destaque', '--ember'],
+    ['ink', 'Fundo', '--ink'],
+    ['surface', 'Cartoes', '--surface'],
+    ['text', 'Texto', '--text'],
+    ['muted', 'Texto secundario', '--muted'],
+  ];
+
+  var MEDIA_FIELDS = [
+    ['logoUrl', 'Logo'],
+    ['backgroundUrl', 'Imagem de fundo'],
+  ];
+
+  function buildBrandForm() {
+    var colors = document.getElementById('roomColors');
+    colors.innerHTML = '';
+    COLOR_FIELDS.forEach(function (field) {
+      var wrap = document.createElement('div');
+      wrap.innerHTML =
+        '<label for="rc-' + field[0] + '">' + field[1] + '</label>' +
+        '<input type="color" id="rc-' + field[0] + '" data-color="' + field[0] + '" />';
+      colors.appendChild(wrap);
+    });
+
+    // Mexeu na cor, a tela ja muda: o dono ve o resultado antes de salvar.
+    colors.addEventListener('input', function (event) {
+      var key = event.target.dataset.color;
+      if (!key) return;
+      var field = COLOR_FIELDS.filter(function (f) { return f[0] === key; })[0];
+      if (field) document.documentElement.style.setProperty(field[2], event.target.value);
+    });
+
+    var media = document.getElementById('roomMedia');
+    media.innerHTML = '';
+    MEDIA_FIELDS.forEach(function (field) {
+      var wrap = document.createElement('div');
+      wrap.innerHTML =
+        '<label for="rm-' + field[0] + '">' + field[1] + '</label>' +
+        '<input type="url" id="rm-' + field[0] + '" data-media="' + field[0] + '" placeholder="https://... (cole o endereco da imagem)" />' +
+        '<div class="preview-frame" data-preview="' + field[0] + '"></div>' +
+        '<div class="preview-status" data-preview-status="' + field[0] + '"></div>';
+      media.appendChild(wrap);
+    });
+
+    media.addEventListener('input', function (event) {
+      var key = event.target.dataset.media;
+      if (key) previewMedia(key, event.target.value.trim());
+    });
+  }
+
+  function previewMedia(key, url) {
+    UI.mediaPreview(
+      document.querySelector('[data-preview="' + key + '"]'),
+      document.querySelector('[data-preview-status="' + key + '"]'),
+      url,
+      false
+    );
+  }
+
+  function fillBrandForm(branding) {
+    COLOR_FIELDS.forEach(function (field) {
+      var input = document.getElementById('rc-' + field[0]);
+      if (input && branding.colors && branding.colors[field[0]]) {
+        input.value = branding.colors[field[0]];
+      }
+    });
+    MEDIA_FIELDS.forEach(function (field) {
+      var input = document.getElementById('rm-' + field[0]);
+      if (!input) return;
+      input.value = branding[field[0]] || '';
+      previewMedia(field[0], input.value);
+    });
+  }
+
+  function saveBrand(payload) {
+    return UI.api('/api/rooms/' + roomId + '/branding', { method: 'PUT', body: payload })
+      .then(function (branding) {
+        Theme.applyBranding(branding);
+        fillBrandForm(branding);
+        UI.toast('Identidade aplicada para todos nesta sala.');
+      })
+      .catch(function (err) { UI.toast(err.message); });
+  }
+
+  document.getElementById('brandBtn').addEventListener('click', function () {
+    var panel = document.getElementById('brandPanel');
+    panel.hidden = !panel.hidden;
+    if (!panel.hidden) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+
+  document.getElementById('saveBrand').addEventListener('click', function () {
+    var colors = {};
+    COLOR_FIELDS.forEach(function (field) {
+      colors[field[0]] = document.getElementById('rc-' + field[0]).value;
+    });
+    var payload = { colors: colors };
+    MEDIA_FIELDS.forEach(function (field) {
+      payload[field[0]] = document.getElementById('rm-' + field[0]).value.trim();
+    });
+    saveBrand(payload);
+  });
+
+  document.getElementById('resetBrand').addEventListener('click', function () {
+    if (!confirm('Voltar esta sala para a aparencia padrao do site?')) return;
+    saveBrand({ reset: true });
+  });
+
+  // Chega quando a identidade da sala muda - inclusive se o admin mudar por fora.
+  socket.on('room:branding', function (branding) {
+    Theme.applyBranding(branding);
+    fillBrandForm(branding);
+  });
+
+  buildBrandForm();
+  Theme.loadRoomBranding(roomId).then(function (branding) {
+    if (branding) fillBrandForm(branding);
+  });
+
   iceReady = RTC.fetchIceServers()
     .then(function (servers) { iceServers = servers; })
     .catch(function () { UI.toast('Nao foi possivel carregar os servidores de conexao.'); });

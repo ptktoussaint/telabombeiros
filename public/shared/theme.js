@@ -55,8 +55,9 @@
       else window.Spotlight.enable();
     }
     if (window.Sparks) {
-      if (effects.sparks === false) window.Sparks.stop();
-      else window.Sparks.start();
+      var rate = effects.sparkRate;
+      if (rate === undefined || rate === null) rate = window.Sparks.DEFAULT_INTENSITY;
+      window.Sparks.setIntensity(effects.sparks === false ? 0 : rate);
     }
 
     window.__branding = branding;
@@ -78,11 +79,37 @@
       });
   }
 
-  window.Theme = { applyBranding: applyBranding, loadBranding: loadBranding };
+  // A identidade da sala ja chega mesclada com a do site, entao a pagina da sala
+  // busca so esta - se buscasse as duas, a tela piscaria com a aparencia errada antes.
+  function loadRoomBranding(roomId) {
+    return fetch('/api/rooms/' + roomId + '/branding', { credentials: 'same-origin' })
+      .then(function (res) {
+        return res.ok ? res.json() : null;
+      })
+      .then(function (branding) {
+        if (branding) applyBranding(branding);
+        return branding;
+      })
+      .catch(function () {
+        return null;
+      });
+  }
+
+  window.Theme = {
+    applyBranding: applyBranding,
+    loadBranding: loadBranding,
+    loadRoomBranding: loadRoomBranding,
+  };
+
+  function autoLoad() {
+    // Paginas de sala carregam a propria identidade; nao busque a global aqui.
+    if (document.body.hasAttribute('data-branding-room')) return;
+    loadBranding();
+  }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadBranding);
+    document.addEventListener('DOMContentLoaded', autoLoad);
   } else {
-    loadBranding();
+    autoLoad();
   }
 })();

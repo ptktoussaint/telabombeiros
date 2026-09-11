@@ -85,6 +85,17 @@
           <label class="small" style="margin:0"><input type="checkbox" id="fxSparks" style="width:auto"> fagulhas de fogo</label>
         </div>
 
+        <div class="slider-field" id="sparkField">
+          <label for="fxSparkRate">
+            Quantidade de fagulhas <span class="slider-value" id="fxSparkRateValue">20</span>
+          </label>
+          <input type="range" id="fxSparkRate" min="0" max="100" step="1" value="20" />
+          <div class="slider-scale"><span>nenhuma</span><span>discreta</span><span>intensa</span></div>
+          <p class="muted small" style="margin:8px 0 0">
+            Arraste e veja o efeito mudar na tela na hora. Salve para valer para todo mundo.
+          </p>
+        </div>
+
         <div class="row" style="margin-top:22px">
           <button class="btn" id="saveBranding">Salvar identidade visual</button>
           <button class="btn ghost" id="reloadBranding">Descartar alteracoes</button>

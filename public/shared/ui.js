@@ -63,5 +63,43 @@
     return new Date(ts).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   }
 
-  window.UI = { toast: toast, copy: copy, api: api, formatTime: formatTime };
+  // Validar o formato da URL nao prova que ela aponta para uma midia de verdade:
+  // quem responde isso e o onload/onerror do proprio elemento.
+  function mediaPreview(frame, status, url, isVideo) {
+    frame.innerHTML = '';
+    status.textContent = '';
+    status.className = 'preview-status';
+    if (!url) {
+      frame.innerHTML = '<span class="muted small">usando o padrao do site</span>';
+      return;
+    }
+    var el = document.createElement(isVideo ? 'video' : 'img');
+    if (isVideo) {
+      el.muted = true;
+      el.controls = true;
+      el.addEventListener('loadeddata', function () {
+        status.textContent = 'Link valido: o video carregou.';
+        status.classList.add('ok');
+      });
+    } else {
+      el.addEventListener('load', function () {
+        status.textContent = 'Link valido: a imagem carregou.';
+        status.classList.add('ok');
+      });
+    }
+    el.addEventListener('error', function () {
+      status.textContent = 'Este link nao carregou como midia. Confira o endereco.';
+      status.classList.add('fail');
+    });
+    el.src = url;
+    frame.appendChild(el);
+  }
+
+  window.UI = {
+    toast: toast,
+    copy: copy,
+    api: api,
+    formatTime: formatTime,
+    mediaPreview: mediaPreview,
+  };
 })();

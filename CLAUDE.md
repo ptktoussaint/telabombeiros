@@ -24,4 +24,7 @@
    o transmissor vai apenas `hidden: true` com rotulo neutro, o minimo para abrir a conexao WebRTC.
 8. Tokens: so o hash sha256 vai para o banco. Nunca persistir o valor puro.
 9. Credenciais TURN nunca no HTML - so por `/api/ice-servers`, com sessao identificada.
-10. Este projeto **nao tem** nada de prova, exame, questoes, fiscal, aluno ou cronometro de prova.
+10. Identidade visual da sala **sobrepoe** a do site, nunca a substitui nem a altera: campo vazio na
+    sala significa "usar o do site", e a mesclagem (`mergeBranding`) jamais pode mutar o objeto
+    global - se mutar, a aparencia de uma sala vaza para as outras.
+11. Este projeto **nao tem** nada de prova, exame, questoes, fiscal, aluno ou cronometro de prova.

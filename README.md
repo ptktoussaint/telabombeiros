@@ -91,6 +91,23 @@ toda mensagem de sinalizacao do admin carrega o `roomId` explicito. No cliente h
 de agora, nao historico. Um restart apaga sem prejuizo. Cada mudanca emite um evento que atualiza o
 painel do admin por socket - nunca por polling.
 
+### Identidade visual
+
+Existem dois niveis, e o de baixo sempre sobrepoe o de cima:
+
+1. **Do site**, editavel pelo admin: cores, nome, frase, logo, fundo, video, efeitos e a
+   **quantidade de fagulhas** (barra de 0 a 100 no painel).
+2. **Da sala**, editavel pelo dono da sala no botao "Identidade visual": cores, logo e imagem de
+   fundo, validos **apenas naquela sala**.
+
+Campo vazio na sala significa "usar o do site". Ao salvar, o servidor emite `room:branding` para o
+canal da sala e **todo mundo que ja esta conectado muda de aparencia na hora**, sem recarregar. A
+mesclagem (`mergeBranding` em `lib/branding.js`) nunca altera o objeto global - e isso que impede a
+aparencia de uma sala de vazar para outra.
+
+O painel do admin mantem a identidade do site mesmo enquanto monitora salas, porque um so painel nao
+pode assumir a aparencia de varias salas ao mesmo tempo.
+
 ### Tokens
 
 Do token do transmissor e de cada convite so o **hash sha256** vai para o banco, igual senha. O valor
