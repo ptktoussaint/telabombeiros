@@ -124,6 +124,28 @@ pagina direto em vez de redirecionar; o token sai da barra de enderecos no naveg
 
 Tamanho recomendado da imagem do cartao: **1200x630**.
 
+### Qualidade e travamentos
+
+Tres controles, em `public/shared/quality.js` (UMD: o mesmo arquivo roda no navegador, nos testes e
+no servidor, que valida o nivel pedido).
+
+**Captura, na pagina de quem transmite** - vale para todos e define o teto. E o ajuste que mais
+alivia CPU e banda de quem transmite, porque reduz na origem em vez de reduzir depois de codificar.
+Padrao: 720p / 24 fps.
+
+**Por espectador** - cada um escolhe a sua. Como quem recebe nao consegue reduzir o que ja foi
+enviado, o pedido viaja por socket ate quem transmite, que aplica `setParameters` **so naquela
+conexao**; as outras nao sao afetadas. A reducao e relativa a captura atual, entao pedir "baixa" de
+uma captura ja pequena nao gera imagem ilegivel.
+
+**Automatico** - aproveita o watchdog que ja existia. A cada 5s le `getStats()` e classifica a
+recepcao em ruim / ok / bom, olhando progresso de quadros, perda de pacotes e quadros descartados.
+Duas leituras ruins seguidas descem um degrau; seis boas sobem um. Desce rapido e sobe devagar de
+proposito: subir cedo demais faz a imagem oscilar entre nitida e travada.
+
+Na central de monitoramento cada quadro tem seu proprio seletor e comeca em "baixa", porque somar
+varias salas em alta trava o computador do admin.
+
 ### Fim da sala
 
 A sala acaba de duas formas, e as duas passam por `lib/roomLifecycle.js`:

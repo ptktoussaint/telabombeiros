@@ -43,4 +43,14 @@
     e desconectar cortaria o monitoramento de todas. Ele so sai do canal daquela sala.
 16. Sala encerrada **nao redireciona ninguem** para a tela inicial: todos (host incluso) ficam numa
     tela com o tema daquela sala e a mensagem de encerramento.
-17. Este projeto **nao tem** nada de prova, exame, questoes, fiscal, aluno ou cronometro de prova.
+17. Qualidade: quem **recebe** nao consegue reduzir o que ja foi enviado. A escolha do espectador
+    vai por socket ate quem transmite, que aplica `setParameters` **apenas na conexao dele**. A
+    escada de niveis vive em `public/shared/quality.js`, em formato UMD, para navegador e testes
+    usarem a mesma fonte - inclusive o servidor, que valida o nivel pedido em vez de repassar
+    qualquer texto do cliente.
+18. A reducao por espectador e **relativa a captura atual**, nunca absoluta: pedir "baixa" de uma
+    captura ja pequena nao pode gerar imagem ilegivel, e `scaleResolutionDownBy` nunca fica < 1.
+    Trocar a captura obriga a recalcular a qualidade de todos os espectadores.
+19. Nunca tocar em `localStorage` direto no cliente: use `UI.pref`. Em janela anonima o acesso
+    lanca excecao e derrubaria a pagina inteira, nao so a preferencia.
+20. Este projeto **nao tem** nada de prova, exame, questoes, fiscal, aluno ou cronometro de prova.

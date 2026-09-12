@@ -162,6 +162,10 @@
             current = {
               framesDecoded: stat.framesDecoded || 0,
               bytesReceived: stat.bytesReceived || 0,
+              packetsLost: stat.packetsLost || 0,
+              packetsReceived: stat.packetsReceived || 0,
+              framesDropped: stat.framesDropped || 0,
+              frameHeight: stat.frameHeight || 0,
             };
           }
         });
@@ -170,6 +174,11 @@
         var previous = self.lastStats;
         self.lastStats = current;
         if (!previous) return;
+
+        // O veredito de saude alimenta o modo automatico de qualidade.
+        if (typeof self.options.onHealth === 'function' && window.Quality) {
+          self.options.onHealth(window.Quality.judge(previous, current), current);
+        }
 
         var progressed =
           current.framesDecoded > previous.framesDecoded ||
@@ -292,6 +301,26 @@
       if (existing) existing.replaceTrack(track);
       else self.pc.addTrack(track, stream);
     });
+  };
+
+  // Qualidade de UM espectador: mexe so nesta conexao, as outras seguem intactas.
+  Sender.prototype.applyQuality = function (level, capturedHeight) {
+    if (!this.pc || this.closed || !window.Quality) return Promise.resolve();
+    var videoSender = this.pc.getSenders().filter(function (s) {
+      return s.track && s.track.kind === 'video';
+    })[0];
+    if (!videoSender || !videoSender.getParameters) return Promise.resolve();
+
+    var params = videoSender.getParameters();
+    if (!params.encodings || !params.encodings.length) params.encodings = [{}];
+
+    var enc = window.Quality.encodingFor(level, capturedHeight);
+    params.encodings[0].maxBitrate = enc.maxBitrate;
+    params.encodings[0].maxFramerate = enc.maxFramerate;
+    params.encodings[0].scaleResolutionDownBy = enc.scaleResolutionDownBy;
+    this.quality = level;
+
+    return videoSender.setParameters(params).catch(function () {});
   };
 
   Sender.prototype.close = function () {

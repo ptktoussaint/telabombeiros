@@ -43,9 +43,14 @@
             Clique em compartilhar e escolha a tela, a janela ou a aba que quer transmitir. Quem entrar
             pelo link de convite ve exatamente isso, ao vivo. Para mandar o som junto, marque
             <strong>"compartilhar audio"</strong> na janela que o navegador abrir.
+            A qualidade da captura vale para todos: cada espectador ainda pode reduzir a dele.
           </p>
           <video id="preview" autoplay muted playsinline></video>
-          <div class="row" style="margin-top:14px">
+          <div class="row" style="margin-top:14px; align-items:flex-end">
+            <div style="flex:0 1 200px">
+              <label for="captureQuality">Qualidade da captura</label>
+              <select id="captureQuality"></select>
+            </div>
             <button class="btn" id="shareBtn">Compartilhar tela</button>
             <button class="btn ghost" id="stopBtn" disabled>Parar de compartilhar</button>
             <button class="btn ghost" id="closeRoomBtn">Encerrar sala</button>
@@ -90,6 +95,7 @@
   <script src="/shared/sparks.js"></script>
   <script src="/shared/ui.js"></script>
   <script src="/shared/theme.js"></script>
+  <script src="/shared/quality.js"></script>
   <script src="/js/rtc.js"></script>
   <script src="/js/transmitter.js"></script>
 </body>

@@ -23,7 +23,56 @@
     viewerCount: document.getElementById('viewerCount'),
     inviteList: document.getElementById('inviteList'),
     roomTitle: document.getElementById('roomTitle'),
+    captureQuality: document.getElementById('captureQuality'),
   };
+
+  var captureLevel = UI.pref.get('tb-captura', Quality.DEFAULT_LEVEL);
+  if (!Quality.isValid(captureLevel) || captureLevel === Quality.AUTO) {
+    captureLevel = Quality.DEFAULT_LEVEL;
+  }
+
+  function capturedHeight() {
+    if (!localStream) return Quality.get(captureLevel).height;
+    var track = localStream.getVideoTracks()[0];
+    var settings = track && track.getSettings ? track.getSettings() : {};
+    return settings.height || Quality.get(captureLevel).height;
+  }
+
+  function buildQualitySelect() {
+    els.captureQuality.innerHTML = '';
+    Quality.LEVELS.slice().reverse().forEach(function (nivel) {
+      var opt = document.createElement('option');
+      opt.value = nivel.id;
+      opt.textContent = nivel.label + ' (' + nivel.height + 'p, ' + nivel.frameRate + ' fps)';
+      els.captureQuality.appendChild(opt);
+    });
+    els.captureQuality.value = captureLevel;
+  }
+
+  // Trocar a captura muda a base de todo mundo, entao a qualidade de cada espectador
+  // precisa ser recalculada: a reducao dele e relativa ao que esta sendo capturado.
+  function applyCaptureLevel(nivel) {
+    captureLevel = nivel;
+    UI.pref.set('tb-captura', nivel);
+    if (!localStream) return Promise.resolve();
+
+    var track = localStream.getVideoTracks()[0];
+    if (!track || !track.applyConstraints) return Promise.resolve();
+
+    return track
+      .applyConstraints(Quality.captureConstraints(nivel))
+      .then(function () {
+        var altura = capturedHeight();
+        viewers.forEach(function (viewer, viewerId) {
+          var sender = senders.get(viewerId);
+          if (sender) sender.applyQuality(viewer.quality || nivel, altura);
+        });
+        UI.toast('Captura ajustada para ' + Quality.get(nivel).label + '.');
+      })
+      .catch(function () {
+        UI.toast('Este navegador nao permitiu mudar a qualidade da captura em andamento.');
+      });
+  }
 
   var STATUS_LABEL = {
     awaiting: 'Aguardando',
@@ -72,7 +121,10 @@
         UI.personRow({
           dot: estado.dot,
           name: viewer.label,
-          meta: viewer.joinedAt ? 'entrou as ' + UI.formatTime(viewer.joinedAt) : '',
+          meta: [
+            viewer.joinedAt ? 'entrou as ' + UI.formatTime(viewer.joinedAt) : '',
+            viewer.quality ? 'qualidade ' + Quality.get(viewer.quality).label.toLowerCase() : '',
+          ].filter(Boolean).join(' - '),
           pill: estado.pill,
           pillClass: estado.cls,
           buttons: [
@@ -128,7 +180,10 @@
     });
     senders.set(viewerId, sender);
     setStatus('negotiating');
-    sender.createOffer();
+    sender.createOffer().then(function () {
+      var viewer = viewers.get(viewerId);
+      sender.applyQuality((viewer && viewer.quality) || captureLevel, capturedHeight());
+    });
   }
 
   function disconnectViewer(viewerId) {
@@ -143,7 +198,7 @@
       return;
     }
     navigator.mediaDevices
-      .getDisplayMedia({ video: { frameRate: 24 }, audio: true })
+      .getDisplayMedia({ video: Quality.captureConstraints(captureLevel), audio: true })
       .then(function (stream) {
         localStream = stream;
         els.preview.srcObject = stream;
@@ -299,6 +354,15 @@
     if (sender) sender.addIceCandidate(payload.candidate);
   });
 
+  socket.on('quality:request', function (payload) {
+    var viewer = viewers.get(payload.viewerId);
+    if (!viewer || !Quality.isValid(payload.level)) return;
+    viewer.quality = payload.level;
+    var sender = senders.get(payload.viewerId);
+    if (sender) sender.applyQuality(payload.level, capturedHeight());
+    renderViewers();
+  });
+
   socket.on('webrtc:request-renegotiate', function (payload) {
     // Recria a conexao daquele espectador do zero - as outras nao sao tocadas.
     connectViewer(payload.viewerId);
@@ -441,6 +505,11 @@
   socket.on('room:branding', function (branding) {
     Theme.applyBranding(branding);
     fillBrandForm(branding);
+  });
+
+  buildQualitySelect();
+  els.captureQuality.addEventListener('change', function () {
+    applyCaptureLevel(els.captureQuality.value);
   });
 
   buildBrandForm();

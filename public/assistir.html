@@ -22,11 +22,15 @@
     <main>
       <section class="card">
         <video id="remote" autoplay playsinline muted controls></video>
-        <div class="row" style="margin-top:14px">
+        <div class="row" style="margin-top:14px; align-items:flex-end">
+          <div style="flex:0 1 210px">
+            <label for="viewQuality">Qualidade da imagem</label>
+            <select id="viewQuality"></select>
+          </div>
           <button class="btn" id="soundBtn">Ativar som</button>
           <button class="btn ghost" id="fullscreenBtn">Tela cheia</button>
           <button class="btn ghost" id="reconnectBtn">Reconectar</button>
-          <span class="muted small" id="hint">Se a imagem congelar, o sistema tenta se recuperar sozinho.</span>
+          <span class="muted small" id="hint">No automatico, a qualidade cai sozinha se a sua internet apertar.</span>
         </div>
       </section>
     </main>
@@ -37,6 +41,7 @@
   <script src="/shared/sparks.js"></script>
   <script src="/shared/ui.js"></script>
   <script src="/shared/theme.js"></script>
+  <script src="/shared/quality.js"></script>
   <script src="/js/rtc.js"></script>
   <script src="/js/viewer.js"></script>
 </body>

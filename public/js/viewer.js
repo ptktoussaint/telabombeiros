@@ -21,7 +21,62 @@
     statusText: document.getElementById('statusText'),
     roomTitle: document.getElementById('roomTitle'),
     viewerLabel: document.getElementById('viewerLabel'),
+    quality: document.getElementById('viewQuality'),
+    hint: document.getElementById('hint'),
   };
+
+  var qualityChoice = UI.pref.get('tb-qualidade', Quality.AUTO);
+  if (!Quality.isValid(qualityChoice)) qualityChoice = Quality.AUTO;
+
+  // Quem recebe nao consegue diminuir sozinho o que ja foi enviado: o pedido vai para
+  // quem transmite, que reduz apenas nesta conexao.
+  function pedirQualidade(nivel) {
+    socket.emit('quality:request', { level: nivel });
+  }
+
+  var auto = Quality.createAutoController({
+    startLevel: Quality.DEFAULT_LEVEL,
+    onChange: function (nivel) {
+      pedirQualidade(nivel);
+      mostrarAuto(nivel);
+    },
+  });
+
+  function mostrarAuto(nivel) {
+    if (qualityChoice !== Quality.AUTO) return;
+    els.hint.textContent = 'Automatico - agora em ' + Quality.get(nivel).label.toLowerCase() + '.';
+  }
+
+  function buildQualitySelect() {
+    els.quality.innerHTML = '';
+    var autoOpt = document.createElement('option');
+    autoOpt.value = Quality.AUTO;
+    autoOpt.textContent = 'Automatico (recomendado)';
+    els.quality.appendChild(autoOpt);
+
+    Quality.LEVELS.slice().reverse().forEach(function (nivel) {
+      var opt = document.createElement('option');
+      opt.value = nivel.id;
+      opt.textContent = nivel.label + ' (' + nivel.height + 'p, ' + nivel.frameRate + ' fps)';
+      els.quality.appendChild(opt);
+    });
+
+    els.quality.value = qualityChoice;
+  }
+
+  function aplicarEscolha(valor) {
+    qualityChoice = valor;
+    UI.pref.set('tb-qualidade', valor);
+
+    if (valor === Quality.AUTO) {
+      auto.reset(Quality.DEFAULT_LEVEL);
+      pedirQualidade(auto.level);
+      mostrarAuto(auto.level);
+      return;
+    }
+    pedirQualidade(valor);
+    els.hint.textContent = 'Qualidade fixa em ' + Quality.get(valor).label.toLowerCase() + '.';
+  }
 
   var STATUS_LABEL = {
     awaiting: 'Aguardando transmissao',
@@ -50,6 +105,9 @@
       sendIce: function (candidate) { socket.emit('webrtc:ice', { candidate: candidate }); },
       requestRenegotiate: function () { socket.emit('webrtc:request-renegotiate', {}); },
       onStatus: setStatus,
+      onHealth: function (veredito) {
+        if (qualityChoice === Quality.AUTO) auto.report(veredito);
+      },
       onStream: function (stream) {
         els.video.srcObject = stream;
         var play = els.video.play();
@@ -179,6 +237,16 @@
     }
     socket.emit('webrtc:request-renegotiate', {});
     setStatus('connecting');
+  });
+
+  buildQualitySelect();
+  els.quality.addEventListener('change', function () {
+    aplicarEscolha(els.quality.value);
+  });
+
+  socket.on('viewer:ready', function () {
+    // O pedido so vale depois que existe conexao com quem transmite.
+    aplicarEscolha(qualityChoice);
   });
 
   Theme.loadRoomBranding(roomId);

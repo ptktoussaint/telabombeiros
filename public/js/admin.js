@@ -212,6 +212,7 @@
       '<div class="row" style="margin-top:10px">' +
       '<button class="btn small" data-tile-sound>Ativar som</button>' +
       '<button class="btn ghost small" data-tile-stop>Parar</button>' +
+      '<select data-tile-quality style="flex:1 1 130px"></select>' +
       '</div>' +
       '<div class="tile-panel">' +
       '<h4>Espectadores agora <span data-tile-count>(0)</span></h4>' +
@@ -227,6 +228,7 @@
     var video = tile.querySelector('video');
     var badge = tile.querySelector('[data-tile-status]');
     var soundBtn = tile.querySelector('[data-tile-sound]');
+    var qualitySelect = tile.querySelector('[data-tile-quality]');
     var viewersBox = tile.querySelector('[data-tile-viewers]');
     var countBox = tile.querySelector('[data-tile-count]');
     var invitesBox = tile.querySelector('[data-tile-invites]');
@@ -295,8 +297,49 @@
       });
     }
 
+    // A central assiste varias salas de uma vez, entao cada quadro comeca leve:
+    // somar quatro transmissoes em alta trava o computador do admin.
+    var escolha = Quality.AUTO;
+    var autoQualidade = Quality.createAutoController({
+      startLevel: 'baixa',
+      onChange: function (nivel) { pedirQualidade(nivel); },
+    });
+
+    function pedirQualidade(nivel) {
+      socket.emit('quality:request', { roomId: roomId, level: nivel });
+    }
+
+    function aplicarEscolha(valor) {
+      escolha = valor;
+      if (valor === Quality.AUTO) {
+        autoQualidade.reset('baixa');
+        pedirQualidade(autoQualidade.level);
+        return;
+      }
+      pedirQualidade(valor);
+    }
+
+    qualitySelect.innerHTML = '';
+    var autoOpt = document.createElement('option');
+    autoOpt.value = Quality.AUTO;
+    autoOpt.textContent = 'Automatico';
+    qualitySelect.appendChild(autoOpt);
+    Quality.LEVELS.slice().reverse().forEach(function (nivel) {
+      var opt = document.createElement('option');
+      opt.value = nivel.id;
+      opt.textContent = nivel.label;
+      qualitySelect.appendChild(opt);
+    });
+    qualitySelect.value = escolha;
+    qualitySelect.addEventListener('change', function () {
+      aplicarEscolha(qualitySelect.value);
+    });
+
     var receiver = new RTC.Receiver({
       iceServers: iceServers,
+      onHealth: function (veredito) {
+        if (escolha === Quality.AUTO) autoQualidade.report(veredito);
+      },
       sendAnswer: function (sdp) { socket.emit('webrtc:answer', { roomId: roomId, sdp: sdp }); },
       sendIce: function (candidate) { socket.emit('webrtc:ice', { roomId: roomId, candidate: candidate }); },
       requestRenegotiate: function () { socket.emit('webrtc:request-renegotiate', { roomId: roomId }); },
@@ -323,6 +366,7 @@
       },
     };
     monitors.set(roomId, monitor);
+    aplicarEscolha(escolha);
     if (live) monitor.updateRoomStatus(live);
     if (roomsById.has(roomId)) monitor.updateRoomInfo(roomsById.get(roomId));
     else renderInvites([]);

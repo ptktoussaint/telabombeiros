@@ -213,7 +213,29 @@
     document.title = config.message || 'Sala encerrada';
   }
 
+  // Em janela anonima ou com dados do site bloqueados, so tocar no localStorage ja
+  // lanca excecao - e isso derrubaria a pagina inteira, nao so a preferencia.
+  var pref = {
+    get: function (chave, padrao) {
+      try {
+        var valor = localStorage.getItem(chave);
+        return valor === null ? padrao : valor;
+      } catch (err) {
+        return padrao;
+      }
+    },
+    set: function (chave, valor) {
+      try {
+        localStorage.setItem(chave, valor);
+        return true;
+      } catch (err) {
+        return false;
+      }
+    },
+  };
+
   window.UI = {
+    pref: pref,
     showRoomEnded: showRoomEnded,
     personRow: personRow,
     actionButton: actionButton,
