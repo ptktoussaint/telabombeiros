@@ -53,4 +53,11 @@
     Trocar a captura obriga a recalcular a qualidade de todos os espectadores.
 19. Nunca tocar em `localStorage` direto no cliente: use `UI.pref`. Em janela anonima o acesso
     lanca excecao e derrubaria a pagina inteira, nao so a preferencia.
-20. Este projeto **nao tem** nada de prova, exame, questoes, fiscal, aluno ou cronometro de prova.
+20. Deteccao de cores (`public/shared/palette.js`, UMD e testado): a imagem define os **tons**,
+    nunca a claridade. O site e escuro por natureza - um logo branco jamais pode clarear o fundo e
+    sumir com o texto. Ha teste exigindo contraste minimo de 4,5:1 do texto sobre fundo e cartoes
+    em qualquer imagem.
+21. Ler pixels de imagem de outro dominio exige `crossOrigin` e autorizacao do servidor dela.
+    Quando nao houver, avise o usuario com clareza - nao tente contornar buscando a imagem pelo
+    servidor (viraria porta para o servidor buscar endereco interno).
+22. Este projeto **nao tem** nada de prova, exame, questoes, fiscal, aluno ou cronometro de prova.

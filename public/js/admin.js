@@ -523,6 +523,45 @@
     document.getElementById('fxSparkRateValue').textContent = rate;
   }
 
+  var COLOR_VARS = {
+    brand: '--brand', brandDeep: '--brand-deep', ember: '--ember',
+    ink: '--ink', surface: '--surface', text: '--text', muted: '--muted',
+  };
+
+  function aplicarTema(tema) {
+    Object.keys(COLOR_VARS).forEach(function (chave) {
+      var input = document.getElementById('color-' + chave);
+      if (input && tema[chave]) {
+        input.value = tema[chave];
+        document.documentElement.style.setProperty(COLOR_VARS[chave], tema[chave]);
+      }
+    });
+  }
+
+  function detectarCores(btn) {
+    var url =
+      document.getElementById('media-logoUrl').value.trim() ||
+      document.getElementById('media-backgroundUrl').value.trim();
+
+    if (!url) {
+      UI.toast('Coloque um logo ou uma imagem de fundo primeiro.');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Analisando...';
+    Palette.fromImageUrl(url)
+      .then(function (tema) {
+        aplicarTema(tema);
+        UI.toast('Cores detectadas. Ajuste se quiser e clique em salvar.');
+      })
+      .catch(function (err) { UI.toast(UI.paletteError(err)); })
+      .finally(function () {
+        btn.disabled = false;
+        btn.textContent = 'Detectar cores da imagem';
+      });
+  }
+
   function saveBranding() {
     var colors = {};
     COLOR_FIELDS.forEach(function (field) {
@@ -652,6 +691,9 @@
   document.getElementById('refreshRooms').addEventListener('click', loadRooms);
   document.getElementById('showClosed').addEventListener('change', loadRooms);
   document.getElementById('saveBranding').addEventListener('click', saveBranding);
+  document.getElementById('detectColors').addEventListener('click', function () {
+    detectarCores(this);
+  });
   document.getElementById('reloadBranding').addEventListener('click', function () {
     UI.api('/api/branding').then(function (data) {
       Theme.applyBranding(data);

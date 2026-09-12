@@ -25,7 +25,10 @@
         Vale so para esta sala e muda na hora para todo mundo que ja esta assistindo, sem ninguem
         precisar recarregar. O que voce deixar em branco continua usando o padrao do site.
       </p>
-      <h3 style="font-size:14px; margin:16px 0 10px">Cores</h3>
+      <div class="list-head" style="margin:16px 0 10px">
+        <h3 style="margin:0; font-size:14px">Cores</h3>
+        <button class="btn ghost small" type="button" id="detectRoomColors">Detectar cores da imagem</button>
+      </div>
       <div class="grid cols-3" id="roomColors"></div>
       <h3 style="font-size:14px; margin:20px 0 10px">Logo e imagem de fundo</h3>
       <div class="grid cols-2" id="roomMedia"></div>
@@ -95,6 +98,7 @@
   <script src="/shared/sparks.js"></script>
   <script src="/shared/ui.js"></script>
   <script src="/shared/theme.js"></script>
+  <script src="/shared/palette.js"></script>
   <script src="/shared/quality.js"></script>
   <script src="/js/rtc.js"></script>
   <script src="/js/transmitter.js"></script>

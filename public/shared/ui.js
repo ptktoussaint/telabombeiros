@@ -234,8 +234,20 @@
     },
   };
 
+  function paletteError(err) {
+    var motivo = err && err.message;
+    if (motivo === 'bloqueada') {
+      return 'O site que hospeda esta imagem nao autoriza a leitura das cores. Envie o arquivo ou use um link de outro servico.';
+    }
+    if (motivo === 'nao-carregou') {
+      return 'A imagem nao carregou. Confira se o endereco esta certo.';
+    }
+    return 'Nao foi possivel ler as cores desta imagem.';
+  }
+
   window.UI = {
     pref: pref,
+    paletteError: paletteError,
     showRoomEnded: showRoomEnded,
     personRow: personRow,
     actionButton: actionButton,

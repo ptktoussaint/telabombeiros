@@ -73,7 +73,14 @@
           </div>
         </div>
 
-        <h3 style="margin:22px 0 10px; font-size:15px">Cores</h3>
+        <div class="list-head" style="margin:22px 0 10px">
+          <h3 style="margin:0; font-size:15px">Cores</h3>
+          <button class="btn ghost small" type="button" id="detectColors">Detectar cores da imagem</button>
+        </div>
+        <p class="hint" style="margin:-4px 0 12px">
+          Usa o logo (ou a imagem de fundo) para montar uma paleta combinando. Voce ainda pode
+          ajustar tudo depois, e nada e salvo ate voce clicar em salvar.
+        </p>
         <div class="grid cols-3" id="colorGrid"></div>
 
         <h3 style="margin:22px 0 10px; font-size:15px">Cartao de compartilhamento</h3>
@@ -125,6 +132,7 @@
   <script src="/shared/sparks.js"></script>
   <script src="/shared/ui.js"></script>
   <script src="/shared/theme.js"></script>
+  <script src="/shared/palette.js"></script>
   <script src="/shared/quality.js"></script>
   <script src="/js/rtc.js"></script>
   <script src="/js/admin.js"></script>

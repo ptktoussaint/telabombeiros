@@ -468,6 +468,40 @@
     });
   }
 
+  function aplicarTemaDetectado(tema) {
+    COLOR_FIELDS.forEach(function (field) {
+      var input = document.getElementById('rc-' + field[0]);
+      if (input && tema[field[0]]) {
+        input.value = tema[field[0]];
+        document.documentElement.style.setProperty(field[2], tema[field[0]]);
+      }
+    });
+  }
+
+  function detectarCores(btn) {
+    var url =
+      document.getElementById('rm-logoUrl').value.trim() ||
+      document.getElementById('rm-backgroundUrl').value.trim();
+
+    if (!url) {
+      UI.toast('Coloque um logo ou uma imagem de fundo desta sala primeiro.');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Analisando...';
+    Palette.fromImageUrl(url)
+      .then(function (tema) {
+        aplicarTemaDetectado(tema);
+        UI.toast('Cores detectadas. Ajuste se quiser e clique em salvar.');
+      })
+      .catch(function (err) { UI.toast(UI.paletteError(err)); })
+      .finally(function () {
+        btn.disabled = false;
+        btn.textContent = 'Detectar cores da imagem';
+      });
+  }
+
   function saveBrand(payload) {
     return UI.api('/api/rooms/' + roomId + '/branding', { method: 'PUT', body: payload })
       .then(function (branding) {
@@ -482,6 +516,10 @@
     var panel = document.getElementById('brandPanel');
     panel.hidden = !panel.hidden;
     if (!panel.hidden) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+
+  document.getElementById('detectRoomColors').addEventListener('click', function () {
+    detectarCores(this);
   });
 
   document.getElementById('saveBrand').addEventListener('click', function () {

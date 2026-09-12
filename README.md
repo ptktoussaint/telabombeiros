@@ -124,6 +124,29 @@ pagina direto em vez de redirecionar; o token sai da barra de enderecos no naveg
 
 Tamanho recomendado da imagem do cartao: **1200x630**.
 
+### Deteccao de cores
+
+Botao "Detectar cores da imagem" nos dois paineis de identidade (site e sala). Le o logo (ou a
+imagem de fundo), encontra as cores dominantes e monta as sete cores do tema.
+
+Como funciona (`public/shared/palette.js`, UMD e coberto por testes):
+
+1. A imagem e desenhada num canvas de 80x80 e os pixels sao lidos dali.
+2. Pixels transparentes sao ignorados; cores parecidas sao agrupadas. Como as caixas de
+   agrupamento tem borda fixa, uma cor na divisa se partiria em duas e perderia peso - por isso
+   ha uma etapa que junta caixas vizinhas, essencial em imagem com degrade.
+3. A cor da marca e a que mais **ocupa** a imagem, nao a mais viva: senao um detalhe pequeno e
+   saturado roubaria o lugar da cor principal. Preto e branco sao descartados nessa escolha.
+4. O destaque procura um segundo tom a pelo menos 35 graus do primeiro.
+5. **A imagem define os tons, nunca a claridade.** O site e escuro por natureza: fundo, cartoes e
+   texto recebem so um respingo do tom encontrado. Um logo branco nao pode clarear o fundo.
+
+Imagem em tons de cinza gera um tema neutro escuro, sem inventar cor.
+
+**Limite conhecido:** ler os pixels de uma imagem hospedada em outro site so funciona se aquele
+servidor autorizar (CORS). Arquivo enviado pelo painel sempre funciona; link externo depende do
+servico. Quando nao dá, o sistema avisa e sugere o caminho alternativo.
+
 ### Qualidade e travamentos
 
 Tres controles, em `public/shared/quality.js` (UMD: o mesmo arquivo roda no navegador, nos testes e
