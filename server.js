@@ -11,6 +11,7 @@ const config = require('./lib/config');
 const db = require('./lib/db');
 const { warnIfNoTurn } = require('./lib/turn');
 const { attachSignaling } = require('./lib/signaling');
+const { startSweeper } = require('./lib/roomLifecycle');
 const pagesRouter = require('./routes/pages');
 const { router: roomsRouter } = require('./routes/rooms');
 const { router: adminRouter } = require('./routes/admin');
@@ -69,6 +70,7 @@ async function start() {
   app.set('io', io);
 
   attachSignaling(io, sessionMiddleware);
+  startSweeper(io);
   warnIfNoTurn(process.env);
 
   if (config.admin.password === 'admin123' && !config.admin.passwordHash) {

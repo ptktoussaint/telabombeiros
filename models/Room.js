@@ -31,6 +31,9 @@ const roomSchema = new mongoose.Schema({
   branding: { type: roomBrandingSchema, default: () => ({}) },
   status: { type: String, enum: ['active', 'closed'], default: 'active', index: true },
   createdAt: { type: Date, default: Date.now },
+  // Ultima vez que o host esteve conectado. Fica no banco (e nao so na memoria)
+  // porque a hospedagem hiberna e reinicia: alarme em memoria se perde, isto nao.
+  lastHostSeenAt: { type: Date, default: Date.now, index: true },
   closedAt: { type: Date, default: null },
 });
 

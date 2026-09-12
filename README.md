@@ -179,6 +179,12 @@ A sala acaba de duas formas, e as duas passam por `lib/roomLifecycle.js`:
    um tropeco de rede mataria a transmissao de todo mundo sem volta. Se ele voltar dentro da folga,
    o encerramento e cancelado.
 
+Como garantia, ha uma **varredura a cada 30s** (`sweepStaleRooms`), porque o alarme em memoria
+sozinho deixa dois buracos: sala criada e nunca aberta (nunca houve desconexao para disparar nada)
+e reinicio do servidor, que apaga os alarmes pendentes - critico numa hospedagem que hiberna. A
+marca `lastHostSeenAt` fica no banco e sobrevive ao reinicio; enquanto o host esta conectado ela e
+renovada. A varredura tambem roda uma vez na subida do processo, limpando o que ficou pendurado.
+
 Nos dois casos o servidor marca a sala como `closed`, emite `room:closed` para o canal e derruba as
 conexoes. **O socket do admin nunca e derrubado** - ele atende varias salas ao mesmo tempo, entao
 apenas sai do canal daquela sala.

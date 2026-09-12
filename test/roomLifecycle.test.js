@@ -99,3 +99,55 @@ test('sala sem ninguem conectado nao quebra o encerramento', () => {
   io.sockets.adapter.rooms = new Map();
   assert.strictEqual(disconnectRoomSockets(io, 'sala5'), 0);
 });
+
+/* ------------------- rede de seguranca: varredura de salas ------------------- */
+
+const { shouldCloseStale } = require('../lib/roomLifecycle');
+
+const MINUTO = 60000;
+const AGORA = 1_000_000_000;
+
+function sala(extra) {
+  return Object.assign({ status: 'active', createdAt: new Date(AGORA), lastHostSeenAt: new Date(AGORA) }, extra);
+}
+
+test('sala criada e nunca aberta e encerrada depois da folga', () => {
+  // Nunca houve desconexao para disparar o alarme, entao so a varredura pega este caso.
+  const nova = sala({ lastHostSeenAt: new Date(AGORA) });
+  assert.strictEqual(shouldCloseStale(nova, false, AGORA + 30000, MINUTO), false, 'cedo demais');
+  assert.strictEqual(shouldCloseStale(nova, false, AGORA + MINUTO, MINUTO), true);
+});
+
+test('host conectado nunca tem a sala encerrada, por mais antiga que seja', () => {
+  const antiga = sala({ lastHostSeenAt: new Date(AGORA - 10 * MINUTO) });
+  assert.strictEqual(shouldCloseStale(antiga, true, AGORA, MINUTO), false);
+});
+
+test('host que acabou de sair ainda tem a folga inteira', () => {
+  const recente = sala({ lastHostSeenAt: new Date(AGORA - 10000) });
+  assert.strictEqual(shouldCloseStale(recente, false, AGORA, MINUTO), false);
+});
+
+test('sala orfa desde antes de um reinicio do servidor e encerrada', () => {
+  // O alarme em memoria morreu junto com o processo; a marca no banco sobreviveu.
+  const orfa = sala({ lastHostSeenAt: new Date(AGORA - 30 * MINUTO) });
+  assert.strictEqual(shouldCloseStale(orfa, false, AGORA, MINUTO), true);
+});
+
+test('sala ja encerrada nao e encerrada de novo', () => {
+  const fechada = sala({ status: 'closed', lastHostSeenAt: new Date(AGORA - 10 * MINUTO) });
+  assert.strictEqual(shouldCloseStale(fechada, false, AGORA, MINUTO), false);
+});
+
+test('sala antiga sem marca nenhuma cai na data de criacao', () => {
+  const semMarca = { status: 'active', createdAt: new Date(AGORA - 5 * MINUTO), lastHostSeenAt: null };
+  assert.strictEqual(shouldCloseStale(semMarca, false, AGORA, MINUTO), true);
+});
+
+test('registro corrompido nao trava a varredura', () => {
+  assert.strictEqual(shouldCloseStale(null, false, AGORA, MINUTO), false);
+  assert.strictEqual(
+    shouldCloseStale({ status: 'active', createdAt: null, lastHostSeenAt: null }, false, AGORA, MINUTO),
+    true
+  );
+});

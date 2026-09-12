@@ -60,4 +60,8 @@
 21. Ler pixels de imagem de outro dominio exige `crossOrigin` e autorizacao do servidor dela.
     Quando nao houver, avise o usuario com clareza - nao tente contornar buscando a imagem pelo
     servidor (viraria porta para o servidor buscar endereco interno).
-22. Este projeto **nao tem** nada de prova, exame, questoes, fiscal, aluno ou cronometro de prova.
+22. O encerramento por ausencia do host **nao pode depender so de alarme em memoria**: a
+    hospedagem hiberna e reinicia, e o alarme morre junto. A marca `lastHostSeenAt` fica no banco
+    e uma varredura periodica (`sweepStaleRooms`) encerra o que passou da folga - inclusive sala
+    criada e nunca aberta, que nunca gera desconexao para disparar nada.
+23. Este projeto **nao tem** nada de prova, exame, questoes, fiscal, aluno ou cronometro de prova.
